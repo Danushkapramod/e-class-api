@@ -7,7 +7,7 @@ import userRouter from './routes/authRoutes.js'
 export const app = express()
 app.use(express.json())
 app.use('/api/v1/classes', classRouter)
-app.use('/api/v1/teachers', teacherRouter)
+app.use('/api/v1/tea', teacherRouter)
 app.use('/api/v1/users', userRouter)
 
 app.all('*', (req, res, next) => {
