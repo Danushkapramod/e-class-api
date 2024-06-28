@@ -1,0 +1,31 @@
+{
+    "env": {
+        "es2021": true,
+        "node": true
+    },
+    "extends": ["airbnb-base", "prettier"],
+    "parserOptions": {
+        "ecmaVersion": 15,
+        "sourceType": "module"
+    },
+    "rules": {
+        "no-console": "off", // allow console.log statements (example)
+        "no-unused-vars": "warn", // warn about unused variables
+        "prefer-const": "error", // enforce the use of const over let when possible
+        "arrow-body-style": ["error", "as-needed"], // enforce braces around arrow function bodies only when necessary
+        "linebreak-style": "off",
+        "comma-dangle": "off",
+        "import/extensions": "off",
+        "func-names": "off",
+        "prefer-arrow-callback": "off",
+        "quotes": "off",
+        "no-multiple-empty-lines": "off",
+        "space-before-blocks": "off",
+        "consistent-return": "off",
+        "no-underscore-dangle": "off",
+        "spaced-comment": "off",
+        "import/prefer-default-export": "off",
+        "prefer-destructuring": "off",
+        "prefer-template": "off"
+    }
+}
