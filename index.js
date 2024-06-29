@@ -1,10 +1,15 @@
+import cors from "cors"
 import express from 'express'
 import classRouter from './routes/classRoutes.js'
 import teacherRouter from "./routes/teacherRoutes.js"
 import AppErrror from './utils/AppError.js'
 import userRouter from './routes/authRoutes.js'
 
+
 export const app = express()
+
+app.use(cors());
+
 app.use(express.json())
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
