@@ -4,7 +4,8 @@ import catchAsync from '../utils/catchAsync.js'
 
 export const getAllTeachers = catchAsync(async function (req, res, next) {
     const teachers = await Teacher.find()
-
+     .populate({path:'classes',model:'Class'}) 
+     .exec();
     res.status(200).json({
         status: 'succes',
         body: { teachers },
@@ -13,6 +14,7 @@ export const getAllTeachers = catchAsync(async function (req, res, next) {
 
 export const getTeacherById = catchAsync(async function (req, res, next) {
     const teacherById = await Teacher.find(req.params.id)
+
     if (!teacherById) {
         return next(new AppError('No Teacher found with that ID', 404))
     }

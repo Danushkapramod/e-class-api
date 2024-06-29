@@ -4,7 +4,8 @@ import AppError from '../utils/AppError.js'
 
 export const getAllClasses = catchAsync(async function (req, res, next) {
     const classes = await Class.find()
-
+      .populate('teacher') 
+      .exec();
     res.status(200).json({
         status: 'succes',
         body: { classes },

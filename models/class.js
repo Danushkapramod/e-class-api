@@ -1,9 +1,10 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
+
 
 const classModel = new mongoose.Schema({
     subject: { type: String, lowercase: true, required: true },
     grade: { type: String, lowercase: true },
-    teacherId: String,
+    teacher: { type: Schema.Types.ObjectId, ref: 'Teacher',default:null },
     hall:{ type: String, lowercase: true },
     day: { type: String, lowercase: true},
     startTime: String,

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import cors from "cors"
 import express from 'express'
 import classRouter from './routes/classRoutes.js'
