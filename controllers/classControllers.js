@@ -3,9 +3,7 @@ import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 
 export const getAllClasses = catchAsync(async function (req, res, next) {
-    const classes = await Class.find()
-      .populate('teacher') 
-      .exec();
+    const classes = await Class.find().populate('teacher').exec()
     res.status(200).json({
         status: 'succes',
         body: { classes },
@@ -21,6 +19,29 @@ export const getClassById = catchAsync(async function (req, res, next) {
     res.status(200).json({
         status: 'succes',
         body: { classById },
+    })
+})
+
+export const updateClass = catchAsync(async function (req, res, next) {
+    const classById = await Class.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+    })
+    if (!classById) {
+        return next(new AppError('No claas found with that ID', 404))
+    }
+
+    res.status(200).json({
+        status: 'succes',
+        body: { classById },
+    })
+})
+
+export const deleteClass = catchAsync(async function (req, res, next) {
+    await Class.findByIdAndDelete(req.params.id)
+
+    res.status(200).json({
+        status: 'succes',
     })
 })
 

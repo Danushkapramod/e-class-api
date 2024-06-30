@@ -1,4 +1,3 @@
-
 import jwt from 'jsonwebtoken'
 import { Auth } from '../models/auth.js'
 import catchAsync from '../utils/catchAsync.js'

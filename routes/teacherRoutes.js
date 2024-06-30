@@ -1,11 +1,20 @@
 import express from 'express'
-import { createTeacher, getAllTeachers, getTeacherById } from '../controllers/teacherControllers.js'
-
+import {
+    createTeacher,
+    deleteTeacher,
+    getAllTeachers,
+    getTeacherById,
+    updateTeacher,
+} from '../controllers/teacherControllers.js'
 
 const router = express.Router()
 
 router.route('/').get(getAllTeachers).post(createTeacher)
 
-router.route('/:id').get(getTeacherById).patch().delete()
+router
+    .route('/:id')
+    .get(getTeacherById)
+    .patch(updateTeacher)
+    .delete(deleteTeacher)
 
 export default router
