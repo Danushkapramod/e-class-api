@@ -16,6 +16,11 @@ app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/options', optionRouter)
+app.use('/api/v1/test', (req,res,next)=>{
+    res.status(200).json({
+      query:req.query
+    })
+})
 
 app.all('*', (req, res, next) => {
     next(new AppErrror(`Can't find ${req.originalUrl} on this server!`, 404))
