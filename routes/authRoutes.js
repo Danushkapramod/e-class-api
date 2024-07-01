@@ -1,5 +1,6 @@
 import express from 'express'
 import {
+    fetchAuthData,
     getAllUsers,
     login,
     protect,
@@ -14,5 +15,5 @@ router.post('/forgotPassword')
 // router.patch("/resetPassword/:token")
 
 router.get('/', protect, getAllUsers)
-
+router.get('/me', protect, fetchAuthData)
 export default router

@@ -4,41 +4,47 @@ import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 
 function genarateJWT(data) {
-    return jwt.sign(data, process.env.JWT_SECRET,process.env.JWTEXPIRES_IN)
+    return jwt.sign(data, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWTEXPIRES_IN,
+    })
 }
 
-function createSendToken(user,res){
+function createSendToken(user, res) {
     user.password = undefined
     const payload = {
-        userId: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         roles: user.role,
         avatar: user.avatar,
-        scopes: user.scope
-      };
+        scopes: user.scope,
+    }
     const token = genarateJWT(payload)
 
-    res.cookie('jwt',token,{
-        expires:new Date(Date.now() + 3600 * 1000),
+    res.cookie('access_token', token, {
+        expires: new Date(
+            Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+        ),
         // secure:true,
-        httpOnly:true
-     })
-     res.status(200).json({
+        httpOnly: true,
+    })
+    res.status(200).json({
         token,
-        user
-    })  
-    
+        user,
+    })
 }
 
-
 export const getAllUsers = catchAsync(async function (req, res, next) {
-
     const users = await Auth.find()
     res.status(200).json({
         status: 'succes',
         body: { users },
     })
+})
+
+export const fetchAuthData = catchAsync(async function (req, res, next) {
+    const auth = await Auth.findById(req.user._id)
+    res.status(200).json({ auth })
 })
 
 export const signup = catchAsync(async function (req, res) {
@@ -58,8 +64,7 @@ export const signup = catchAsync(async function (req, res) {
 })
 
 export const login = catchAsync(async function (req, res, next) {
-    const email = req.body.email
-    const password = req.body.password
+    const { email, password } = req.body
 
     if (!email || !password) {
         return next(new AppError('Please provide email and password', 400))
@@ -68,17 +73,21 @@ export const login = catchAsync(async function (req, res, next) {
     if (!user || !(await user.compairPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401))
     }
-   // res.status(200).json(token)
-   createSendToken(user,res)
+    createSendToken(user, res)
 })
 
 export const protect = catchAsync(async function (req, res, next) {
-    const token = req.headers.authorization
-    if (!token) {
-        return next(new AppError('Access denied. No token provided.', 401))
+    let bearerToken = null
+    const bearerHeader = req.headers.authorization
+
+    if (bearerHeader) {
+        bearerToken = bearerHeader.split(' ')[1]
     }
-    const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET)
-    const freshUser = await Auth.findOne({ _id: decoded.id })
+    const cookieToken = req.cookies.access_token
+    const token = bearerToken || cookieToken
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const freshUser = await Auth.findById(decoded._id)
     if (!freshUser) {
         return next(
             new AppError(

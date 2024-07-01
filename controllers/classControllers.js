@@ -1,11 +1,15 @@
 import { Class } from '../models/class.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
-import { ApiFeatures } from '../utils/ApiFeatures.js';
-
+import { ApiFeatures } from '../utils/ApiFeatures.js'
 
 export const getAllClasses = catchAsync(async function (req, res, next) {
- const apiFeatures = new ApiFeatures(req,Class.find()).filtering().sorting().limiting().pagination().withTeacher()
+    const apiFeatures = new ApiFeatures(req, Class.find())
+        .filtering()
+        .sorting()
+        .limiting()
+        .pagination()
+        .withTeacher()
 
     const classes = await apiFeatures.query
     res.status(200).json({
@@ -13,8 +17,6 @@ export const getAllClasses = catchAsync(async function (req, res, next) {
         body: { classes },
     })
 })
-
-
 
 export const getClassById = catchAsync(async function (req, res, next) {
     const classById = await Class.findById(req.params.id)

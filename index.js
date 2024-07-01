@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import cors from 'cors'
+// eslint-disable-next-line import/no-extraneous-dependencies
+import cookieParser from 'cookie-parser'
 import express from 'express'
 import classRouter from './routes/classRoutes.js'
 import teacherRouter from './routes/teacherRoutes.js'
@@ -10,15 +12,15 @@ import optionRouter from './routes/optionRouts.js'
 export const app = express()
 
 app.use(cors())
-
+app.use(cookieParser())
 app.use(express.json())
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/options', optionRouter)
-app.use('/api/v1/test', (req,res,next)=>{
+app.use('/api/v1/test', (req, res, next) => {
     res.status(200).json({
-      query:req.query
+        query: req.query,
     })
 })
 
@@ -27,9 +29,7 @@ app.all('*', (req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-    // eslint-disable-next-line no-param-reassign
     err.statusCode = err.statusCode || 500
-    // eslint-disable-next-line no-param-reassign
     err.status = err.status || 'error'
 
     res.status(err.statusCode)
