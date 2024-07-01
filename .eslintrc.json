@@ -26,6 +26,7 @@
         "spaced-comment": "off",
         "import/prefer-default-export": "off",
         "prefer-destructuring": "off",
-        "prefer-template": "off"
+        "prefer-template": "off",
+        "no-param-reassign": "off"
     }
 }

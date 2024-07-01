@@ -1,48 +1,13 @@
 import { Class } from '../models/class.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
+import { ApiFeatures } from '../utils/ApiFeatures.js';
+
 
 export const getAllClasses = catchAsync(async function (req, res, next) {
+ const apiFeatures = new ApiFeatures(req,Class.find()).filtering().sorting().limiting().pagination().withTeacher()
 
- //1)filtring
- const queryObj = { ...req.query };
- const excludField = ['page', 'sort', 'limit', 'fields',"teacher"];
- excludField.forEach((el) => {
-   delete queryObj[el];
- });
- //advanced filtring
- let queryStr = JSON.stringify(queryObj);
- queryStr = queryStr.replace(/(gt|gte|lte|lt)/g, (matched) => `$${matched}`)
- let query =  Class.find(JSON.parse(queryStr));
-
- //2) sorting
-
- if (req.query.sort) {
-   const sortBy = req.query.sort.split(',').join(' ');
-   query = Class.find(JSON.parse(queryStr)).sort(sortBy);
- }
- //3)Field limiting
- if (req.query.fields) {
-   const fields = req.query.fields.split(',').join(' ');
-   query =  Class.find(JSON.parse(queryStr)).select(fields);
- }
- //Pagination page and limit
- if (req.query.page) {
-   const page = req.query.page * 1 || 1;
-   const limit = req.query.limit * 1 || 100;
-   const skip = (page - 1) * limit;
-   const numItems = await Class.countDocuments();
-   if (skip >= numItems) {
-     throw new Error('this page do not exist');
-   }
-   query =  Class.find(JSON.parse(queryStr)).skip(skip).limit(limit);
- }
- //with teacher
- if (req.query.teacher === "true") {
-    query =  query.populate('teacher').exec()
- }   
- //execute query
-    const classes = await query
+    const classes = await apiFeatures.query
     res.status(200).json({
         status: 'succes',
         body: { classes },

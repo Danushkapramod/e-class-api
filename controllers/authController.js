@@ -4,10 +4,36 @@ import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 
 function genarateJWT(data) {
-    return jwt.sign(data, process.env.JWT_SECRET)
+    return jwt.sign(data, process.env.JWT_SECRET,process.env.JWTEXPIRES_IN)
 }
 
+function createSendToken(user,res){
+    user.password = undefined
+    const payload = {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        roles: user.role,
+        avatar: user.avatar,
+        scopes: user.scope
+      };
+    const token = genarateJWT(payload)
+
+    res.cookie('jwt',token,{
+        expires:new Date(Date.now() + 3600 * 1000),
+        // secure:true,
+        httpOnly:true
+     })
+     res.status(200).json({
+        token,
+        user
+    })  
+    
+}
+
+
 export const getAllUsers = catchAsync(async function (req, res, next) {
+
     const users = await Auth.find()
     res.status(200).json({
         status: 'succes',
@@ -25,10 +51,8 @@ export const signup = catchAsync(async function (req, res) {
         role: req.body.role,
     })
 
-    const token = genarateJWT({ userId: user._id })
     res.status(201).json({
         status: 'succes',
-        token,
         body: { user },
     })
 })
@@ -44,12 +68,8 @@ export const login = catchAsync(async function (req, res, next) {
     if (!user || !(await user.compairPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401))
     }
-    const token = genarateJWT({
-        userId: user._id,
-        userEmail: user.email,
-        expiresIn: '1h',
-    })
-    res.status(200).json(token)
+   // res.status(200).json(token)
+   createSendToken(user,res)
 })
 
 export const protect = catchAsync(async function (req, res, next) {
