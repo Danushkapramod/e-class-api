@@ -11,8 +11,13 @@ import optionRouter from './routes/optionRouts.js'
 
 export const app = express()
 
-app.use(cors())
 app.use(cookieParser())
+app.use(cors({
+    origin: 'http://localhost:5173', 
+    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  }));
 app.use(express.json())
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)

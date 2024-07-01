@@ -3,35 +3,14 @@ import { Auth } from '../models/auth.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 
-function genarateJWT(data) {
-    return jwt.sign(data, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWTEXPIRES_IN,
-    })
-}
 
-function createSendToken(user, res) {
+function createToken(user) {
     user.password = undefined
-    const payload = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        roles: user.role,
-        avatar: user.avatar,
-        scopes: user.scope,
-    }
-    const token = genarateJWT(payload)
+    const payload = { _id: user._id,email: user.email,}
+    const options = {expiresIn: process.env.JWTEXPIRES_IN}
 
-    res.cookie('access_token', token, {
-        expires: new Date(
-            Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-        ),
-        // secure:true,
-        httpOnly: true,
-    })
-    res.status(200).json({
-        token,
-        user,
-    })
+    const token =  jwt.sign(payload, process.env.JWT_SECRET,options )
+    return token  
 }
 
 export const getAllUsers = catchAsync(async function (req, res, next) {
@@ -43,8 +22,8 @@ export const getAllUsers = catchAsync(async function (req, res, next) {
 })
 
 export const fetchAuthData = catchAsync(async function (req, res, next) {
-    const auth = await Auth.findById(req.user._id)
-    res.status(200).json({ auth })
+    const auther = await Auth.findById(req.user._id)
+    res.status(200).json({ token:req.token,auther })
 })
 
 export const signup = catchAsync(async function (req, res) {
@@ -73,10 +52,22 @@ export const login = catchAsync(async function (req, res, next) {
     if (!user || !(await user.compairPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401))
     }
-    createSendToken(user, res)
+    const token =  createToken(user)
+
+    res.cookie('access_token', token, {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+        httpOnly:true,
+        secure: false,
+         
+    });
+    res.status(200).json({
+        token,
+        user,
+    })
 })
 
 export const protect = catchAsync(async function (req, res, next) {
+
     let bearerToken = null
     const bearerHeader = req.headers.authorization
 
@@ -84,7 +75,7 @@ export const protect = catchAsync(async function (req, res, next) {
         bearerToken = bearerHeader.split(' ')[1]
     }
     const cookieToken = req.cookies.access_token
-    const token = bearerToken || cookieToken
+    const token =  cookieToken || bearerToken
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     const freshUser = await Auth.findById(decoded._id)
@@ -105,5 +96,6 @@ export const protect = catchAsync(async function (req, res, next) {
         )
     }
     req.user = freshUser
+    req.token = token
     next()
 })
