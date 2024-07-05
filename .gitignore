@@ -1,3 +1,5 @@
 node_modules
 logs
 .env
+configs/config.env
+config.env
