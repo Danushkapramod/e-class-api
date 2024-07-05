@@ -21,7 +21,7 @@ const limiter = rateLimit({
 });
 
 const corss = cors({
-    origin: 'http://localhost:5173', 
+    origin: ['http://localhost:5173','http://13.49.145.14'], 
     methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
