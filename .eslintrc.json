@@ -29,6 +29,7 @@
         "prefer-template": "off",
         "no-param-reassign": "off",
         "import/no-extraneous-dependencies": "off",
-        "camelcase": "off"
+        "camelcase": "off",
+        "no-shadow":"off","import/no-mutable-exports":"off"
     }
 }

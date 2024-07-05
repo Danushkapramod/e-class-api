@@ -34,7 +34,13 @@ const authSchema = new mongoose.Schema({
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
-    emailResetPin: String,
+    emailResetPin:String,
+    pendingEmail:  {
+        type: String,
+        unique: true,
+        lowercase: true,
+        validate: [validator.isEmail, 'Please provide a valid email']
+    },
     emailResetExpires: Date,
     active: {
         type: Boolean,
@@ -60,6 +66,15 @@ authSchema.pre('find', async function (next) {
     next()
 })
 
+authSchema.methods.applyPendingEmailChange = function () {
+    if(!this.pendingEmail  || !this.email) return false
+    this.email = this.pendingEmail
+    this.pendingEmail = undefined
+    this.emailResetExpires = undefined
+    this.emailResetPin = undefined
+    return true
+}
+
 authSchema.methods.compairPassword = function (password, dbpassword) {
     return bcrypt.compare(password, dbpassword)
 }
@@ -70,7 +85,8 @@ authSchema.methods.changePasswordAfter = function (JWTimestamp) {
     }
     return false
 }
-authSchema.methods.compairResetToken = function (token) {
+
+authSchema.methods.compaireResetToken = function (token) {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
     const isTokenValid = hashedToken === this.passwordResetToken  
     const isTokenValidPeriod = this.passwordResetExpires && this.passwordResetExpires > Date.now();
@@ -78,7 +94,7 @@ authSchema.methods.compairResetToken = function (token) {
 }
 
 authSchema.methods.compairePin = function (pin) {
-    const hashedPin = crypto.createHash('sha256').update(pin).digest('hex')
+    const hashedPin = crypto.createHash('sha256').update(pin.trim()).digest('hex')
     const isPinValid = hashedPin === this.emailResetPin
     const isPinValidPeriod = this.emailResetExpires && this.emailResetExpires > Date.now();
     return isPinValid && isPinValidPeriod

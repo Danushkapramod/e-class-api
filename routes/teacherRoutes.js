@@ -6,6 +6,7 @@ import {
     getTeacherById,
     updateTeacher,
 } from '../controllers/teacherControllers.js'
+import { protect } from '../controllers/authController.js'
 
 const router = express.Router()
 
@@ -14,7 +15,7 @@ router.route('/').get(getAllTeachers).post(createTeacher)
 router
     .route('/:id')
     .get(getTeacherById)
-    .patch(updateTeacher)
-    .delete(deleteTeacher)
+    .patch(protect,updateTeacher)
+    .delete(protect,deleteTeacher)
 
 export default router

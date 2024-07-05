@@ -3,10 +3,10 @@ import jwt from 'jsonwebtoken'
 import { Auth } from '../models/auth.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
-import { sendMail } from '../services/emailConfig.js'
+import { sendMail } from '../configs/email.js'
+import { signInLogger } from '../configs/logger.js'
 
 dotenv.config({ path: './config.env' })
-
 
 
 function sendPasswordResetToken({token,name,email}){
@@ -77,22 +77,14 @@ export const updateAuther = catchAsync(async function (req, res, next) {
     res.status(200).json({status: 'succes'})
 })
 
-
 export const signup = catchAsync(async function (req, res) {
-    const user = await Auth.create({
-        name: req.body.name,
-        email: req.body.email,
-        avatar: req.body.photo,
-        password: req.body.password,
-        role: req.body.role,
-    })
+    const user = await Auth.create(req.body)
 
     res.status(201).json({
         status: 'succes',
         body: { user },
     })
 })
-
 
 export const login = catchAsync(async function (req, res, next) {
     const { email, password } = req.body
@@ -110,10 +102,16 @@ export const login = catchAsync(async function (req, res, next) {
         httpOnly:true,
         secure: true,   
     });
+    signInLogger.info({user:user.email, message:'Sign-in successful'})
     res.status(200).json({
         token,
         user,
-    })
+    })  
+})
+
+export const logOut = catchAsync(async function (req, res, next) {
+    res.clearCookie('access_token', { httpOnly: true });
+    res.status(200).json( 'Logout successful' );
 })
 
 export const protect = catchAsync(async function (req, res, next) {
@@ -179,8 +177,8 @@ export const changePassword = catchAsync(async function (req, res, next) {
 
 
   export const forgotPassword = catchAsync(async function (req, res, next) {
+   
     const { email } = req.body;
-
     if (!email) {
         return next(new AppError("Email is required.", 400));
     }
@@ -244,6 +242,7 @@ export const emailChangePin = catchAsync(async function (req, res, next) {
         return next(new AppError('User not found.', 401));
     }
     const resetPin = user.createEmailResetPin();
+    user.pendingEmail = new_email
     await user.save();
 
     sendEmailChangePin({
@@ -257,10 +256,10 @@ export const emailChangePin = catchAsync(async function (req, res, next) {
 
 
 export const changeEmail = catchAsync(async function (req, res, next) {
-    const { new_email, pin } = req.body;
+    const  pin  = req.body.pin;
     const email = req.user.email;
 
-    if (!new_email || !pin || !email) {
+    if ( !pin || !email) {
         return next(new AppError("Current email, new email, and pin are required.", 400));
     }
 
@@ -268,8 +267,7 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     if (!user) {
         return next(new AppError('User not found.', 401));
     }
-
-    const isAlsoUser = await Auth.findOne({ email: new_email });
+    const isAlsoUser = await Auth.findOne({ email: user.pendingEmail });
     if (isAlsoUser) {
         return next(new AppError('New email is already in use.', 401));
     }
@@ -277,10 +275,7 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     if (!user.compairePin(pin)) {
         return next(new AppError('Invalid or expired email change pin.', 401));
     }
-
-    user.email = new_email;
-    user.emailResetPin = undefined;
-    user.emailResetExpires = undefined;
+    user.applyPendingEmailChange()
     await user.save();
 
     const token = createToken(user);

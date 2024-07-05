@@ -1,8 +1,10 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+
 import cors from 'cors'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import cookieParser from 'cookie-parser'
+import morgan from 'morgan'
 import express from 'express'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
+import cookieParser from 'cookie-parser'
 import classRouter from './routes/classRoutes.js'
 import teacherRouter from './routes/teacherRoutes.js'
 import AppErrror from './utils/AppError.js'
@@ -10,31 +12,32 @@ import userRouter from './routes/authRoutes.js'
 import optionRouter from './routes/optionRouts.js'
 import accetRouter from './routes/accetsRouts.js'
 import serviceRoutes from './routes/serviceRoutes.js'
-import rateLimit from 'express-rate-limit'
-import './logger.js'
-
-
-
-const app = express()
-
+import { combinedLogger } from './configs/logger.js'
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 2, // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000, 
+    max: 100, 
     message: 'Too many requests from this IP, please try again later.'
-  });
-  
-  app.use(limiter);
-  
+});
 
-app.use(cookieParser())
-app.use(cors({
+const corss = cors({
     origin: 'http://localhost:5173', 
     methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
-  }));
+})
+
+const app = express()
+
+app.use(morgan('combined', { stream: combinedLogger.stream }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
+app.use(cookieParser())
+app.use(helmet())
+app.use(limiter);
+app.use(corss);
+
+
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users',  userRouter)

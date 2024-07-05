@@ -1,6 +1,6 @@
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {PutObjectCommand, DeleteObjectCommand} from '@aws-sdk/client-s3';
-import { s3Client } from "./aws-config.js";
+import { s3Client } from "../configs/aws-config.js";
 
 export class ImageHandle {
   constructor() {

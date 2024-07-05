@@ -1,4 +1,4 @@
-import { ImageHandle } from "../assets/ImageHandle.js"
+import { ImageHandle } from "../utils/ImageHandle.js"
 import catchAsync from "../utils/catchAsync.js"
 import { generateUniqueString } from "../utils/random.Genarates.js"
 

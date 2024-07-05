@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { S3Client } from "@aws-sdk/client-s3";
 
-dotenv.config({ path: './config.env' })
+dotenv.config({ path: './configs/config.env' })
 
 const region = process.env.AWS_REGION;
 const accessKeyId = process.env.AWS_ACCESS_KEY;
