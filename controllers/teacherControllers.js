@@ -34,7 +34,6 @@ export const updateTeacher = catchAsync(async function (req, res, next) {
     if (!teacherById) {
         return next(new AppError('No teacher found with that ID', 404))
     }
-
     res.status(200).json({
         status: 'succes',
         body: { teacherById },

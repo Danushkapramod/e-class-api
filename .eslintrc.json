@@ -27,6 +27,8 @@
         "import/prefer-default-export": "off",
         "prefer-destructuring": "off",
         "prefer-template": "off",
-        "no-param-reassign": "off"
+        "no-param-reassign": "off",
+        "import/no-extraneous-dependencies": "off",
+        "camelcase": "off"
     }
 }

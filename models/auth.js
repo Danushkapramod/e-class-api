@@ -1,5 +1,6 @@
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import mongoose from 'mongoose'
 
 const authSchema = new mongoose.Schema({
@@ -16,6 +17,7 @@ const authSchema = new mongoose.Schema({
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email'],
     },
+    phone:String,
     avatar: String,
     role: {
         type: String,
@@ -25,13 +27,15 @@ const authSchema = new mongoose.Schema({
 
     password: {
         type: String,
-        required: [true, 'Password is required!'],
-        minlength: [6, 'Password need 6 characters minimum!'],
+         required: [true, 'Password is required!'],
+         minlength: [6, 'Password need 6 characters minimum!'],
         select: false,
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    emailResetPin: String,
+    emailResetExpires: Date,
     active: {
         type: Boolean,
         default: true,
@@ -40,19 +44,13 @@ const authSchema = new mongoose.Schema({
 })
 
 authSchema.pre('save', async function (next) {
-    //only run if password was actually modified
-    if (!this.isModified('password')) {
-        return next()
-    }
-    this.password = await bcrypt.hash(this.password, 10)
+    if (!this.isModified('password')) return next()
+    this.password = await bcrypt.hash(this.password, 12)
     next()
 })
 
 authSchema.pre('save', async function (next) {
-    //only run if password was actually modified
-    if (!this.isModified('password') || this.isNew) {
-        return next()
-    }
+    if (!this.isModified('password') || this.isNew) return next()
     this.passwordChangedAt = Date.now() - 1000
     next()
 })
@@ -72,15 +70,31 @@ authSchema.methods.changePasswordAfter = function (JWTimestamp) {
     }
     return false
 }
+authSchema.methods.compairResetToken = function (token) {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+    const isTokenValid = hashedToken === this.passwordResetToken  
+    const isTokenValidPeriod = this.passwordResetExpires && this.passwordResetExpires > Date.now();
+    return isTokenValid && isTokenValidPeriod
+}
+
+authSchema.methods.compairePin = function (pin) {
+    const hashedPin = crypto.createHash('sha256').update(pin).digest('hex')
+    const isPinValid = hashedPin === this.emailResetPin
+    const isPinValidPeriod = this.emailResetExpires && this.emailResetExpires > Date.now();
+    return isPinValid && isPinValidPeriod
+}
+
+authSchema.methods.createEmailResetPin = function () {
+    const resetPin = crypto.randomInt(0, 1000000).toString().padStart(6, '0');
+    this.emailResetPin = crypto.createHash('sha256').update(resetPin).digest('hex')
+    this.emailResetExpires = Date.now() + 10 * 60 * 1000
+    return resetPin
+}
 
 authSchema.methods.createPasswordResetToken = function () {
     const resetToken = crypto.randomBytes(32).toString('hex')
-    this.passwordResetToken = crypto
-        .createHash('sha256')
-        .update(resetToken)
-        .digest('hex')
+    this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000
-    // this.passwordResetToken = resetToken
     return resetToken
 }
 
