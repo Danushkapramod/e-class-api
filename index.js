@@ -21,9 +21,8 @@ const limiter = rateLimit({
 });
 
 const corss = cors({
-    origin: ['http://localhost:5173','http://13.49.145.14'], 
+    origin: ['http://localhost:5173'], 
     methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 })
 
@@ -35,7 +34,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(helmet())
 app.use(limiter);
-app.use(corss);
+app.use(cors());
 
 
 app.use('/api/v1/classes', classRouter)
