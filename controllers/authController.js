@@ -99,7 +99,8 @@ export const login = catchAsync(async function (req, res, next) {
     const token =  createToken(user)
     res.cookie('access_token', token, {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-        httpOnly:true
+        httpOnly:true,
+        secure:true
     });
 
     signInLogger.info({user:user.email, message:'Sign-in successful'})

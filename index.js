@@ -12,7 +12,7 @@ import userRouter from './routes/authRoutes.js'
 import optionRouter from './routes/optionRouts.js'
 import accetRouter from './routes/accetsRouts.js'
 import serviceRoutes from './routes/serviceRoutes.js'
-import { combinedLogger } from './configs/logger.js'
+import { authErrorLogger, combinedLogger } from './configs/logger.js'
 
 
 
@@ -22,14 +22,26 @@ const limiter = {
     message: 'Too many requests from this IP, please try again later.'
 };
 
+const allowedOrigins = ['http://localhost:5173'];
+
 const corsOptions = {
-    origin: ['http://localhost:5173'],
+    
+    origin: function (origin, callback) {
+
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+
+            authErrorLogger.error({'Blocked by CORS**********************': origin}); // Logging the blocked origin
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true,
     optionsSuccessStatus: 204,
-
 };
+
 
 const app = express()
 
