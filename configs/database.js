@@ -1,9 +1,7 @@
-
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
-dotenv.config({ path: './config/config.env' })
-
+dotenv.config()
 const uri = process.env.DATABASE.replace('<PASSWORD>',process.env.DATABASE_PASSWORD)
 export default mongoose
     .connect(uri)

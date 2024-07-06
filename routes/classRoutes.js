@@ -12,6 +12,6 @@ const router = express.Router()
 
 router.route('/').get(getAllClasses).post(createClass)
 
-router.route('/:id').get(getClassById).patch(protect,updateClass).delete( protect,deleteClass)
+router.route('/:id').get(getClassById).patch(protect,updateClass).delete(deleteClass)
 
 export default router

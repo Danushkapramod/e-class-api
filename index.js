@@ -14,17 +14,23 @@ import accetRouter from './routes/accetsRouts.js'
 import serviceRoutes from './routes/serviceRoutes.js'
 import { combinedLogger } from './configs/logger.js'
 
-const limiter = rateLimit({
+
+
+const limiter = {
     windowMs: 15 * 60 * 1000, 
     max: 100, 
     message: 'Too many requests from this IP, please try again later.'
-});
+};
 
-const corss = cors({
-        origin: 'http://localhost:5173', 
-        methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
-        credentials: true
-    })
+const corsOptions = {
+    origin: ['http://localhost:5173'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    credentials: true,
+    optionsSuccessStatus: 204,
+
+};
+
 const app = express()
 
 app.use(morgan('combined', { stream: combinedLogger.stream }));
@@ -32,8 +38,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
 app.use(cookieParser())
 app.use(helmet())
-app.use(limiter);
-app.use(corss);
+app.use(rateLimit(limiter));
+app.use(cors(corsOptions));
 
 
 app.use('/api/v1/classes', classRouter)

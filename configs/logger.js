@@ -44,6 +44,14 @@ export const signUpLogger = createLogger({
   exitOnError: false, 
 });
 
+export const authErrorLogger = createLogger({
+  transports: [
+    new transports.File({...options.file, filename:'logs/auth/auth-error.log',level:'error'}),
+    //new transports.Console(options.console),
+  ],
+  exitOnError: false, 
+});
+
 
 combinedLogger.stream = {
   write: (message) => {
