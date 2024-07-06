@@ -21,19 +21,17 @@ const limiter = rateLimit({
 });
 
 const corss = cors({
-    origin: 'http://localhost:5173', 
-    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-})
-
+        origin: 'http://localhost:5173', 
+        methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
+        credentials: true
+    })
 const app = express()
 
 app.use(morgan('combined', { stream: combinedLogger.stream }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
 app.use(cookieParser())
-//app.use(helmet())
+app.use(helmet())
 app.use(limiter);
 app.use(corss);
 
