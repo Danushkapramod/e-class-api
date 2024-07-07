@@ -18,12 +18,20 @@ export const getAllClasses = catchAsync(async function (req, res, next) {
     })
 })
 
+export const classesTotal = catchAsync(async function (req, res, next) {
+     const total = await Class.countDocuments({}); 
+      res.status(200).json({
+        status: 'succes',
+        body: { total },
+    })
+})
+
 export const getClassById = catchAsync(async function (req, res, next) {
+
     const classById = await Class.findById(req.params.id)
     if (!classById) {
         return next(new AppError('No claas found with that ID', 404))
     }
-
     res.status(200).json({
         status: 'succes',
         body: { classById },

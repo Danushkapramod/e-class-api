@@ -22,20 +22,9 @@ const limiter = {
     message: 'Too many requests from this IP, please try again later.'
 };
 
-const allowedOrigins = ['http://localhost:5173'];
 
 const corsOptions = {
-    
-    origin: function (origin, callback) {
-
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-
-            authErrorLogger.error({'Blocked by CORS**********************': origin}); // Logging the blocked origin
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin:['http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true,
@@ -53,7 +42,10 @@ app.use(helmet())
 app.use(rateLimit(limiter));
 app.use(cors(corsOptions));
 
-
+app.get('/api/v1/cookie',(req,res,next)=>{
+    console.log("---------------------------",req.cookies);  
+    res.status(200).send('done')
+})
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users',  userRouter)

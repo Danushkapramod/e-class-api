@@ -49,3 +49,21 @@ export const createOption = catchAsync(async function (req, res, next) {
         body: { option },
     })
 })
+
+
+export const optionTotal = catchAsync(async function (req, res, next) {
+
+    let total
+    if (req.query.option === 'subject') {
+        total = await Subject.countDocuments({}); 
+    } else if (req.query.option === 'hall') {
+        total = await Hall.countDocuments({}); 
+    } else if (req.query.option === 'grade') {
+        total = await Grade.countDocuments({}); 
+    }
+    res.status(201).json({
+        status: 'success',
+        body: { total },
+    })
+})
+

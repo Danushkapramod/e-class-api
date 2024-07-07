@@ -55,7 +55,6 @@ export const getAllUsers = catchAsync(async function (req, res, next) {
 })
 
 export const fetchAuthData = catchAsync(async function (req, res, next) {
-    authErrorLogger.error({'user---------------------------':req.user})
     const auther = await Auth.findById(req.user._id)
     res.status(200).json({ token:req.token,auther })
 })
@@ -100,7 +99,9 @@ export const login = catchAsync(async function (req, res, next) {
     res.cookie('access_token', token, {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
         httpOnly:true,
-        secure:true
+        secure:true,
+        sameSite: 'None',
+        maxAge: 24 * 60 * 60 * 1000 
     });
 
     signInLogger.info({user:user.email, message:'Sign-in successful'})
@@ -111,10 +112,6 @@ export const login = catchAsync(async function (req, res, next) {
 })
 
 
-authErrorLogger.error({
-    "envs":[process.env.DATABASE_PASSWORD,process.env.JWTEXPIRES_IN,process.env.JWT_COOKIE_EXPIRES_IN,process.env.JWT_SECRET,process.env.AWS_ACCESS_KEY,process.env.AWS_REGION]
-})
-
 export const logOut = catchAsync(async function (req, res, next) {
     res.clearCookie('access_token', { httpOnly: true });
     res.status(200).json( 'Logout successful' );
@@ -123,27 +120,20 @@ export const logOut = catchAsync(async function (req, res, next) {
 export const protect = catchAsync(async function (req, res, next) {
     let bearerToken = null
     const bearerHeader = req.headers.authorization
-
-    authErrorLogger.error({"bearerHeader":{bearerHeader}})
-
     if (bearerHeader) {
         bearerToken = bearerHeader.split(' ')[1]
     }
     const cookieToken = req.cookies.access_token
-    const token =  cookieToken || bearerToken
-    authErrorLogger.error({"token":token})
 
+    const token =  cookieToken || bearerToken
     if(!token){
         return next(new AppError("Unauthorized: Authentication token is missing.", 401));
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    authErrorLogger.error({"decode":{decoded }})
- 
+
     if(!decoded){
         return next(new AppError("Unauthorized: Invalid authentication token.", 401));
     }
-    authErrorLogger.error({"aurhorized":'***********************************************'})
     const freshUser = await Auth.findById(decoded._id)
     if (!freshUser) {
         return next(
@@ -163,7 +153,6 @@ export const protect = catchAsync(async function (req, res, next) {
     }
     req.user = freshUser
     req.token = token
-    authErrorLogger.error({"alldone":req.user })
     next()
 })
 

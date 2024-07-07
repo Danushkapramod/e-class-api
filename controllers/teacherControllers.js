@@ -49,11 +49,21 @@ export const deleteTeacher = catchAsync(async function (req, res, next) {
 })
 
 export const createTeacher = catchAsync(async function (req, res, next) {
+    console.log(req.body);
     const data = Object.assign(req.body)
     const newTeacher = await Teacher.create(data)
 
     res.status(201).json({
         status: 'succes',
         body: { newTeacher },
+    })
+})
+
+
+export const teacherTotal = catchAsync(async function (req, res, next) {
+      const  total = await Teacher.countDocuments({}); 
+      res.status(200).json({
+        status: 'succes',
+        body: { total },
     })
 })
