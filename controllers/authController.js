@@ -4,7 +4,7 @@ import { Auth } from '../models/auth.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 import { sendMail } from '../configs/email.js'
-import { authErrorLogger, signInLogger } from '../configs/logger.js'
+import {signInLogger } from '../configs/logger.js'
 
 dotenv.config()
 
@@ -33,7 +33,6 @@ function sendEmailChangePin({ pin, name, email }) {
       text: message,
       html: `<p>${name}, you requested to change your email address.</p><p>Your verification PIN is: <strong style="font-size: 24px;">${pin}</strong></p>`,
     };
-  
     sendMail(mailOptions);
   }
   
@@ -58,7 +57,6 @@ export const fetchAuthData = catchAsync(async function (req, res, next) {
     const auther = await Auth.findById(req.user._id)
     res.status(200).json({ token:req.token,auther })
 })
-
 
 
 export const updateAuther = catchAsync(async function (req, res, next) {
@@ -172,16 +170,16 @@ export const changePassword = catchAsync(async function (req, res, next) {
     user.password = newPassword;
     await user.save();
 
-    const token =  createToken(user)
+    const token = createToken(user)
     res.cookie('access_token', token, {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
         httpOnly:true,
-        secure: true,   
+        secure: true,  
+        sameSite: 'None',
+        maxAge: 24 * 60 * 60 * 1000  
     });
     res.status(200).json({ message: 'Password changed successfully.' });
 });
-
-
 
 
   export const forgotPassword = catchAsync(async function (req, res, next) {
@@ -190,12 +188,10 @@ export const changePassword = catchAsync(async function (req, res, next) {
     if (!email) {
         return next(new AppError("Email is required.", 400));
     }
-   
     const user = await Auth.findOne({ email });
     if (!user) {
         return next(new AppError('User not found.', 401));
     }
-
     const resetToken = user.createPasswordResetToken();
     await user.save();
 
@@ -204,7 +200,6 @@ export const changePassword = catchAsync(async function (req, res, next) {
         email: user.email,
         name: user.name
     });
-
     res.status(200).json('Password reset email sent.');
 });
 
@@ -286,11 +281,13 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     user.applyPendingEmailChange()
     await user.save();
 
-    const token = createToken(user);
+    const token =  createToken(user);
     res.cookie('access_token', token, {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
         httpOnly: true,
         secure: true,
+        sameSite: 'None',
+        maxAge: 24 * 60 * 60 * 1000 
     });
 
     res.status(200).json('Email changed successfully.' );

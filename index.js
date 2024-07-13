@@ -10,27 +10,24 @@ import teacherRouter from './routes/teacherRoutes.js'
 import AppErrror from './utils/AppError.js'
 import userRouter from './routes/authRoutes.js'
 import optionRouter from './routes/optionRouts.js'
-import accetRouter from './routes/accetsRouts.js'
 import serviceRoutes from './routes/serviceRoutes.js'
-import { authErrorLogger, combinedLogger } from './configs/logger.js'
-
+import assetRoutes from './routes/accetsRoutes.js'
+import {  combinedLogger } from './configs/logger.js'
 
 
 const limiter = {
     windowMs: 15 * 60 * 1000, 
-    max: 100, 
+    max: 3000, 
     message: 'Too many requests from this IP, please try again later.'
 };
 
-
 const corsOptions = {
-    origin:['http://localhost:5173'],
+    origin:['http://localhost:5173','https://e-claa.000webhostapp.com'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    allowedHeaders: ['*'],
     credentials: true,
     optionsSuccessStatus: 204,
 };
-
 
 const app = express()
 
@@ -42,17 +39,12 @@ app.use(helmet())
 app.use(rateLimit(limiter));
 app.use(cors(corsOptions));
 
-app.get('/api/v1/cookie',(req,res,next)=>{
-    console.log("---------------------------",req.cookies);  
-    res.status(200).send('done')
-})
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users',  userRouter)
 app.use('/api/v1/options', optionRouter)
-app.use('/api/v1/awsSignedUrl', accetRouter)
 app.use('/api/v1/sendMail', serviceRoutes)
-
+app.use('/api/v1/assets',assetRoutes)
 
 app.all('*', (req, res, next) => {
     next(new AppErrror(`Can't find ${req.originalUrl} on this server!`, 404))
