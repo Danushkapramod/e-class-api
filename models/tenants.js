@@ -2,6 +2,7 @@ import validator from 'validator'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import mongoose from 'mongoose'
+import {  mongodb } from '../configs/database.js'
 
 const authSchema = new mongoose.Schema({
     name: {
@@ -35,12 +36,12 @@ const authSchema = new mongoose.Schema({
         type:Boolean,
         default:false,
     },
-    tenant_id: {
-        type: mongoose.Schema.ObjectId,
-        default: new mongoose.Types.ObjectId,
-        required: true,
-        unique: true,    
-    },
+    // tenant_id: {
+    //     type: mongoose.Schema.ObjectId,
+    //     default: new mongoose.Types.ObjectId,
+    //     required: true,
+    //     unique: true,    
+    // },
     active: {
         type: Boolean,
         default: true,
@@ -81,8 +82,8 @@ authSchema.pre('save', async function (next) {
     next()
 })
 
-authSchema.pre('find', async function (next) {
-    this.find({ active: { $ne: false } })
+authSchema.pre(['find', 'findOne','findById'], async function (next) {
+    this.where({ active: { $ne: false }})
     next()
 })
 
@@ -140,4 +141,5 @@ authSchema.methods.createPasswordResetToken = function () {
     return resetToken
 }
 
-export const Auth = mongoose.model('Auth', authSchema)
+
+export const Auth = mongodb.model('Tenant', authSchema)

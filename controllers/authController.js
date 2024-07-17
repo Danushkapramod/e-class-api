@@ -1,13 +1,11 @@
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-import { Auth } from '../models/auth.js'
+import { Auth } from '../models/tenants.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 import { sendMail } from '../configs/email.js'
 import {signInLogger } from '../configs/logger.js'
-import { classSchema } from '../models/class.js'
-import { connectToMongoDB } from '../configs/database.js'
-
+import { getTenantDB } from '../configs/database.js'
 
 dotenv.config()
 
@@ -22,13 +20,11 @@ function sendPasswordResetToken({token,name,email}){
       text: message,
       html: `<p> ${name} you requested a password reset. Please click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
     };
-
     sendMail(mailOptions)
 }
 
 function sendEmailChangePin({ pin, name, email }) {
     const message = `${name}, you requested to change your email address. Your verification PIN is: ${pin}`;
-  
     const mailOptions = {
       from: 'no-reply@yourdomain.com',
       to: email,
@@ -42,9 +38,7 @@ function sendEmailChangePin({ pin, name, email }) {
 
 function sendVerificationEmail({ name, email, token }) {
     const verifyEmailUrl = `http://localhost:3000/api/v1/users/verify-email?token=${token}`;
-  
     const message = `${name}, thank you for signing up. Please verify your email by clicking the link below:\n\n${verifyEmailUrl}`;
-  
     const mailOptions = {
       from: 'no-reply@yourdomain.com',
       to: email,
@@ -52,7 +46,6 @@ function sendVerificationEmail({ name, email, token }) {
       text: message,
       html: `<p>${name}, thank you for signing up. Please verify your email by clicking the link below:</p><p><a href="${verifyEmailUrl}">${verifyEmailUrl}</a></p>`,
     };
-  
     sendMail(mailOptions);
   }
 
@@ -60,12 +53,11 @@ function createToken(user) {
     user.password = undefined
     const payload = { _id: user._id,email: user.email,}
     const options = {expiresIn: process.env.JWTEXPIRES_IN}
-
     const token =  jwt.sign(payload, process.env.JWT_SECRET,options )
     return token  
 }
 
-export const getAllUsers = catchAsync(async function (req, res, next) {
+export const getAllUsers = catchAsync(async function (req, res) {
     const users = await Auth.find()
     res.status(200).json({
         status: 'succes',
@@ -73,7 +65,7 @@ export const getAllUsers = catchAsync(async function (req, res, next) {
     })
 })
 
-export const fetchAuthData = catchAsync(async function (req, res, next) {
+export const fetchAuthData = catchAsync(async function (req, res) {
     const auther = await Auth.findById(req.user._id)
     res.status(200).json({ token:req.token,auther })
 })
@@ -94,7 +86,8 @@ export const updateAuther = catchAsync(async function (req, res, next) {
     res.status(200).json({status: 'succes'})
 })
 
-export const signup = catchAsync(async function (req, res,next) {
+
+export const signup = catchAsync(async function (req, res) {
     const user = await Auth.create(req.body)
     const token = user.createEmailVerifyToken()
     await user.save();
@@ -106,7 +99,6 @@ export const signup = catchAsync(async function (req, res,next) {
         body: {user},
     })
 })
-
 
 export const verifyEmail = catchAsync(async function (req, res,next) {
     const token = req.query.token;
@@ -123,9 +115,11 @@ export const verifyEmail = catchAsync(async function (req, res,next) {
     user.emailVerifyToken = undefined;
     user.emailVerifyExpires = undefined;
     await user.save()
-
+    
+    getTenantDB(user._id)
     res.status(201).json('success')
 })
+
 
 export const login = catchAsync(async function (req, res, next) {
     const { email, password } = req.body
@@ -133,7 +127,7 @@ export const login = catchAsync(async function (req, res, next) {
     if (!email || !password) {
         return next(new AppError('Please provide email and password', 400))
     }
-    const user = await Auth.findOne({ email }).select('+password')
+    const user = await Auth.findOne({ email,email_verified:true }).select('+password')
     if (!user || !(await user.compairPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401))
     }
@@ -145,20 +139,19 @@ export const login = catchAsync(async function (req, res, next) {
         sameSite: 'None',
         maxAge: 24 * 60 * 60 * 1000 
     });
-
+ 
     signInLogger.info({user:user.email, message:'Sign-in successful'})
+    
     res.status(200).json({
         token,
         user,
     })  
 })
 
-
-export const logOut = catchAsync(async function (req, res, next) {
+export const logOut = catchAsync(async function (req, res) {
     res.clearCookie('access_token', { httpOnly: true });
     res.status(200).json( 'Logout successful' );
 })
-
 
 
 export const protect = catchAsync(async function (req, res, next) {
@@ -197,7 +190,8 @@ export const protect = catchAsync(async function (req, res, next) {
     }
  //   mongoose.connect(`mongodb+srv://.../${businessId}`)
     req.user = freshUser
-    
+    req.tenantId = freshUser._id
+   // getTenantDB(freshUser._id)
     next()
 })
 
@@ -322,6 +316,7 @@ export const changeEmail = catchAsync(async function (req, res, next) {
         user.pendingEmail = undefined;
         user.emailResetExpires = undefined;
         user.emailResetPin = undefined;
+        user.email_verified = undefined;
         user.save()
         return next(new AppError('New email is already in use.', 401));
     }

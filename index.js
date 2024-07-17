@@ -14,7 +14,6 @@ import serviceRoutes from './routes/serviceRoutes.js'
 import assetRoutes from './routes/accetsRoutes.js'
 import {  combinedLogger } from './configs/logger.js'
 
-
 const limiter = {
     windowMs: 15 * 60 * 1000, 
     max: 30000, 
@@ -30,15 +29,6 @@ const corsOptions = {
 };
 
 const app = express()
-
-
-// app.use((req, res, next) => {
-//     if (req.user && req.user.tenant_id) {
-//         mongoose.Query.prototype.tenant_id = req.user.tenant_id;
-//     }
-//     next();
-// });
-
 
 app.use(morgan('short', { stream: combinedLogger.stream }));
 app.use(express.urlencoded({ extended: true }));
