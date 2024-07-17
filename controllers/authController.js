@@ -5,6 +5,9 @@ import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 import { sendMail } from '../configs/email.js'
 import {signInLogger } from '../configs/logger.js'
+import { classSchema } from '../models/class.js'
+import { connectToMongoDB } from '../configs/database.js'
+
 
 dotenv.config()
 
@@ -36,6 +39,23 @@ function sendEmailChangePin({ pin, name, email }) {
     sendMail(mailOptions);
   }
   
+
+function sendVerificationEmail({ name, email, token }) {
+    const verifyEmailUrl = `http://localhost:3000/api/v1/users/verify-email?token=${token}`;
+  
+    const message = `${name}, thank you for signing up. Please verify your email by clicking the link below:\n\n${verifyEmailUrl}`;
+  
+    const mailOptions = {
+      from: 'no-reply@yourdomain.com',
+      to: email,
+      subject: 'Verify Your Email',
+      text: message,
+      html: `<p>${name}, thank you for signing up. Please verify your email by clicking the link below:</p><p><a href="${verifyEmailUrl}">${verifyEmailUrl}</a></p>`,
+    };
+  
+    sendMail(mailOptions);
+  }
+
 function createToken(user) {
     user.password = undefined
     const payload = { _id: user._id,email: user.email,}
@@ -74,13 +94,37 @@ export const updateAuther = catchAsync(async function (req, res, next) {
     res.status(200).json({status: 'succes'})
 })
 
-export const signup = catchAsync(async function (req, res) {
+export const signup = catchAsync(async function (req, res,next) {
     const user = await Auth.create(req.body)
+    const token = user.createEmailVerifyToken()
+    await user.save();
+
+    sendVerificationEmail({name:user.name,email:user.email,token })
 
     res.status(201).json({
         status: 'succes',
-        body: { user },
+        body: {user},
     })
+})
+
+
+export const verifyEmail = catchAsync(async function (req, res,next) {
+    const token = req.query.token;
+    if(!token) {
+        return next(new AppError('No vefrify token!', 400))
+    }
+    const user = await Auth.findOne({
+        emailVerifyToken:token, emailVerifyExpires:{$gt :Date.now()}
+    })
+    if(!user){ 
+        return next(new AppError('Invalid or expired email verify token!', 401))
+    }
+    user.email_verified = true;
+    user.emailVerifyToken = undefined;
+    user.emailVerifyExpires = undefined;
+    await user.save()
+
+    res.status(201).json('success')
 })
 
 export const login = catchAsync(async function (req, res, next) {
@@ -114,6 +158,8 @@ export const logOut = catchAsync(async function (req, res, next) {
     res.clearCookie('access_token', { httpOnly: true });
     res.status(200).json( 'Logout successful' );
 })
+
+
 
 export const protect = catchAsync(async function (req, res, next) {
     let bearerToken = null
@@ -149,8 +195,9 @@ export const protect = catchAsync(async function (req, res, next) {
             )
         )
     }
+ //   mongoose.connect(`mongodb+srv://.../${businessId}`)
     req.user = freshUser
-    req.token = token
+    
     next()
 })
 
@@ -272,6 +319,10 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     }
     const isAlsoUser = await Auth.findOne({ email: user.pendingEmail });
     if (isAlsoUser) {
+        user.pendingEmail = undefined;
+        user.emailResetExpires = undefined;
+        user.emailResetPin = undefined;
+        user.save()
         return next(new AppError('New email is already in use.', 401));
     }
 

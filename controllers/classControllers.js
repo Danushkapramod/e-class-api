@@ -1,10 +1,10 @@
-import { Class } from '../models/class.js'
+import { Class, classSchema } from '../models/class.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
 import { ApiFeatures } from '../utils/ApiFeatures.js'
 
 export const getAllClasses = catchAsync(async function (req, res, next) {
-    const apiFeatures = new ApiFeatures(req, Class.find())
+    const apiFeatures = new ApiFeatures(req, Class)
         .filtering()
         .sorting()
         .limiting()
@@ -24,6 +24,13 @@ export const classesTotal = catchAsync(async function (req, res, next) {
         status: 'succes',
         body: { total },
     })
+})
+
+
+export const filterTenant = catchAsync( async function (req, res,next) {
+    const {tenant_id} = req.user
+    req.user.find({tenant_id})
+    next()
 })
 
 export const getClassById = catchAsync(async function (req, res, next) {
@@ -55,16 +62,13 @@ export const updateClass = catchAsync(async function (req, res, next) {
 
 export const deleteClass = catchAsync(async function (req, res, next) {
     await Class.findByIdAndDelete(req.params.id)
-
     res.status(200).json({
         status: 'succes',
     })
 })
 
 export const createClass = catchAsync(async function (req, res, next) {
-    const data = Object.assign(req.body)
-    const newclass = await Class.create(data)
-
+    const newclass = await Class.create({...req.body,tenant_id:req.user.tenant_id})
     res.status(201).json({
         status: 'succes',
         body: { newclass },

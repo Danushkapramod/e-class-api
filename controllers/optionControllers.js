@@ -20,11 +20,11 @@ export const getOptions = catchAsync(async function (req, res, next) {
     let options
 
     if (req.query.option === 'subject') {
-        options = await Subject.find()
+        options = await Subject.find({tenant_id:req.user.tenant_id})
     } else if (req.query.option === 'hall') {
-        options = await Hall.find()
+        options = await Hall.find({tenant_id:req.user.tenant_id})
     } else if (req.query.option === 'grade') {
-        options = await Grade.find()
+        options = await Grade.find({tenant_id:req.user.tenant_id})
     }
 
     res.status(200).json({
@@ -37,11 +37,11 @@ export const createOption = catchAsync(async function (req, res, next) {
     let option
 
     if (req.query.option === 'subject') {
-        option = await Subject.create(req.body)
+        option = await Subject.create({...req.body,tenant_id:req.user.tenant_id})
     } else if (req.query.option === 'hall') {
-        option = await Hall.create(req.body)
+        option = await Hall.create({...req.body,tenant_id:req.user.tenant_id})
     } else if (req.query.option === 'grade') {
-        option = await Grade.create(req.body)
+        option = await Grade.create({...req.body,tenant_id:req.user.tenant_id})
     }
 
     res.status(201).json({

@@ -1,9 +1,12 @@
 import { Teacher } from '../models/teacher.js'
+import { ApiFeatures } from '../utils/ApiFeatures.js'
 import AppError from '../utils/AppError.js'
 import catchAsync from '../utils/catchAsync.js'
 
 export const getAllTeachers = catchAsync(async function (req, res, next) {
-    const teachers = await Teacher.find()
+    const apiFeatures = new ApiFeatures(req,Teacher).filtering().pagination();
+
+    const teachers = await apiFeatures.query;
     res.status(200).json({
         status: 'succes',
         body: { teachers },
@@ -49,9 +52,7 @@ export const deleteTeacher = catchAsync(async function (req, res, next) {
 })
 
 export const createTeacher = catchAsync(async function (req, res, next) {
-    console.log(req.body);
-    const data = Object.assign(req.body)
-    const newTeacher = await Teacher.create(data)
+    const newTeacher = await Teacher.create({...req.body,tenant_id:req.user.tenant_id})
 
     res.status(201).json({
         status: 'succes',

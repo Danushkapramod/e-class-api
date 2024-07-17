@@ -11,8 +11,8 @@ import { protect } from '../controllers/authController.js'
 
 const router = express.Router()
 
-router.route('/').get(getAllTeachers).post(protect,createTeacher)
-router.get('/total',teacherTotal)
+router.route('/').get(protect,getAllTeachers).post(protect,createTeacher)
+router.get('/total',protect,teacherTotal)
 router
     .route('/:id')
     .get(getTeacherById)

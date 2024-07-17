@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import { generateHTML } from "./genarateHTML.js";
 
-export async function exportPdf(data,fileName) {
+export async function exportPdf(data,fileName,category) {
     try {
 
       const browser = await puppeteer.launch({
@@ -12,7 +12,7 @@ export async function exportPdf(data,fileName) {
       });
       
       const page = await browser.newPage();
-      const htmlContent =  generateHTML(data);
+      const htmlContent =  generateHTML(data,category);
   
       await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 60000 }); // Increase timeout here as well
       await page.pdf({ path: fileName, printBackground: true, format: 'A4' });

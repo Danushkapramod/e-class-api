@@ -5,6 +5,10 @@ const teacherModel = new mongoose.Schema({
     subject: { type: String, lowercase: true },
     phone: String,
     avatar: String,
+    tenant_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+    },
     createdAt: { type: Date, default: Date.now },
 })
 

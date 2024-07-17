@@ -5,17 +5,17 @@ import mongoose from 'mongoose'
 
 const authSchema = new mongoose.Schema({
     name: {
-        required: [true, 'Name is required!'],
+        required: true,
         type: String,
-        maxlength: [255, 'Maximun letter reached out!'],
+        maxlength: 255,
     },
     email: {
         type: String,
         required: true,
         unique: true,
-        maxlength: [255, 'Maximun letter reached out!'],
+        maxlength: 255,
         lowercase: true,
-        validate: [validator.isEmail, 'Please provide a valid email'],
+        validate: validator.isEmail,
     },
     phone:String,
     avatar: String,
@@ -27,26 +27,46 @@ const authSchema = new mongoose.Schema({
 
     password: {
         type: String,
-         required: [true, 'Password is required!'],
-         minlength: [6, 'Password need 6 characters minimum!'],
+         required: true,
+         minlength: 6,
         select: false,
     },
-    passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-    emailResetPin:String,
-    pendingEmail:  {
-        type: String,
-        unique: true,
-        lowercase: true,
-        validate: [validator.isEmail, 'Please provide a valid email']
+    email_verified:{
+        type:Boolean,
+        default:false,
     },
-    emailResetExpires: Date,
+    tenant_id: {
+        type: mongoose.Schema.ObjectId,
+        default: new mongoose.Types.ObjectId,
+        required: true,
+        unique: true,    
+    },
     active: {
         type: Boolean,
         default: true,
         select: false,
     },
+    pendingEmail:  {
+        type: String,
+        unique: true,
+        lowercase: true,
+        validate: validator.isEmail
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    emailResetPin:String,
+    emailResetExpires: Date,
+    emailVerifyToken: String,
+    emailVerifyExpires: Date,
+       
+})
+
+
+authSchema.pre('save', async function (next){
+    if(!this.isNew) return next();
+    this.email_verified = false;    
+    next()
 })
 
 authSchema.pre('save', async function (next) {
@@ -85,7 +105,6 @@ authSchema.methods.changePasswordAfter = function (JWTimestamp) {
     }
     return false
 }
-
 authSchema.methods.compaireResetToken = function (token) {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
     const isTokenValid = hashedToken === this.passwordResetToken  
@@ -98,6 +117,13 @@ authSchema.methods.compairePin = function (pin) {
     const isPinValid = hashedPin === this.emailResetPin
     const isPinValidPeriod = this.emailResetExpires && this.emailResetExpires > Date.now();
     return isPinValid && isPinValidPeriod
+}
+
+authSchema.methods.createEmailVerifyToken = function () {
+    const token = crypto.randomBytes(32).toString('hex')
+    this.emailVerifyToken = token;
+    this.emailVerifyExpires = Date.now() + 24 * 60 * 60 * 1000
+    return token
 }
 
 authSchema.methods.createEmailResetPin = function () {

@@ -6,7 +6,7 @@ export class ApiFeatures {
 
     filtering() {
         const queryObj = { ...this.req.query }
-        const excludField = ['page', 'sort', 'limit', 'fields', 'teacher']
+        const excludField = ['page', 'sort', 'limit', 'fields', 'teacher',]
         excludField.forEach((el) => {
             delete queryObj[el]
         })

@@ -17,21 +17,30 @@ import {  combinedLogger } from './configs/logger.js'
 
 const limiter = {
     windowMs: 15 * 60 * 1000, 
-    max: 3000, 
+    max: 30000, 
     message: 'Too many requests from this IP, please try again later.'
 };
 
 const corsOptions = {
     origin:['http://localhost:5173','https://e-claa.000webhostapp.com'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['*'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true,
     optionsSuccessStatus: 204,
 };
 
 const app = express()
 
-app.use(morgan('combined', { stream: combinedLogger.stream }));
+
+// app.use((req, res, next) => {
+//     if (req.user && req.user.tenant_id) {
+//         mongoose.Query.prototype.tenant_id = req.user.tenant_id;
+//     }
+//     next();
+// });
+
+
+app.use(morgan('short', { stream: combinedLogger.stream }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
 app.use(cookieParser())
@@ -45,6 +54,7 @@ app.use('/api/v1/users',  userRouter)
 app.use('/api/v1/options', optionRouter)
 app.use('/api/v1/sendMail', serviceRoutes)
 app.use('/api/v1/assets',assetRoutes)
+
 
 app.all('*', (req, res, next) => {
     next(new AppErrror(`Can't find ${req.originalUrl} on this server!`, 404))

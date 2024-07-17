@@ -3,7 +3,7 @@ import { createLogger, format, transports} from 'winston';
 
 const { printf, colorize,json, combine, timestamp} = format;
 const  signInFormat = printf(function({ level, message, timestamp ,user})  {
-  return `${timestamp} ${level}: ${message} - User: ${user}`;
+  return `${timestamp} ${level}: ${message} `;
 });
 
 const options = {
@@ -27,6 +27,8 @@ export const combinedLogger = createLogger({
     ],
     exitOnError: false, 
 });
+
+
 
 export const signInLogger = createLogger({
   transports: [

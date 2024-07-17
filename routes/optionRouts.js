@@ -8,8 +8,8 @@ import {
 import { protect } from '../controllers/authController.js'
 
 const router = express.Router()
-router.get('/total',optionTotal)
-router.route('/').get(getOptions).post(protect,createOption)
+router.get('/total',protect,optionTotal)
+router.route('/').get(protect,getOptions).post(protect,createOption)
 router.route('/:id').delete(protect,deleteOption)
 
 export default router
