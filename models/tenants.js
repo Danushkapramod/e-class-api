@@ -25,7 +25,6 @@ const authSchema = new mongoose.Schema({
         enum: ['admin', 'user'],
         default: 'user',
     },
-
     password: {
         type: String,
          required: true,
@@ -36,12 +35,7 @@ const authSchema = new mongoose.Schema({
         type:Boolean,
         default:false,
     },
-    // tenant_id: {
-    //     type: mongoose.Schema.ObjectId,
-    //     default: new mongoose.Types.ObjectId,
-    //     required: true,
-    //     unique: true,    
-    // },
+ 
     active: {
         type: Boolean,
         default: true,
@@ -49,7 +43,6 @@ const authSchema = new mongoose.Schema({
     },
     pendingEmail:  {
         type: String,
-        unique: true,
         lowercase: true,
         validate: validator.isEmail
     },
@@ -60,11 +53,12 @@ const authSchema = new mongoose.Schema({
     emailResetExpires: Date,
     emailVerifyToken: String,
     emailVerifyExpires: Date,
+    refreshToken: String
        
 })
 
 
-authSchema.pre('save', async function (next){
+authSchema.pre('save', function (next){
     if(!this.isNew) return next();
     this.email_verified = false;    
     next()
@@ -76,13 +70,13 @@ authSchema.pre('save', async function (next) {
     next()
 })
 
-authSchema.pre('save', async function (next) {
+authSchema.pre('save',function (next) {
     if (!this.isModified('password') || this.isNew) return next()
     this.passwordChangedAt = Date.now() - 1000
     next()
 })
 
-authSchema.pre(['find', 'findOne','findById'], async function (next) {
+authSchema.pre(['find', 'findOne','findById'], function (next) {
     this.where({ active: { $ne: false }})
     next()
 })
@@ -112,6 +106,7 @@ authSchema.methods.compaireResetToken = function (token) {
     const isTokenValidPeriod = this.passwordResetExpires && this.passwordResetExpires > Date.now();
     return isTokenValid && isTokenValidPeriod
 }
+
 
 authSchema.methods.compairePin = function (pin) {
     const hashedPin = crypto.createHash('sha256').update(pin.trim()).digest('hex')

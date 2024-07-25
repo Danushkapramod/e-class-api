@@ -3,58 +3,29 @@ import jwt from 'jsonwebtoken'
 import { Auth } from '../models/tenants.js'
 import catchAsync from '../utils/catchAsync.js'
 import AppError from '../utils/AppError.js'
-import { sendMail } from '../configs/email.js'
 import {signInLogger } from '../configs/logger.js'
 import { getTenantDB } from '../configs/database.js'
+import { Email } from '../utils/Email.js'
+import { Token } from '../models/refreshTokens.js'
 
 dotenv.config()
 
-function sendPasswordResetToken({token,name,email}){
-    const resetUrl = `http://localhost:5173/reset-password?token=${token}&email=${email}`;
-    const message = `${name} you requested a password reset. Please make a PUT request to: \n\n ${resetUrl}`;
+const BASE_URL = 'http://localhost:5173';
 
-    const mailOptions = {
-      from: 'no-reply@yourdomain.com',
-      to: email,
-      subject: 'Password Reset Token',
-      text: message,
-      html: `<p> ${name} you requested a password reset. Please click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
-    };
-    sendMail(mailOptions)
-}
+export function createToken(user,type) {
+   let expiresIn;
+   let secret;
 
-function sendEmailChangePin({ pin, name, email }) {
-    const message = `${name}, you requested to change your email address. Your verification PIN is: ${pin}`;
-    const mailOptions = {
-      from: 'no-reply@yourdomain.com',
-      to: email,
-      subject: 'Email Change Verification PIN',
-      text: message,
-      html: `<p>${name}, you requested to change your email address.</p><p>Your verification PIN is: <strong style="font-size: 24px;">${pin}</strong></p>`,
-    };
-    sendMail(mailOptions);
-  }
-  
-
-function sendVerificationEmail({ name, email, token }) {
-    const verifyEmailUrl = `http://localhost:3000/api/v1/users/verify-email?token=${token}`;
-    const message = `${name}, thank you for signing up. Please verify your email by clicking the link below:\n\n${verifyEmailUrl}`;
-    const mailOptions = {
-      from: 'no-reply@yourdomain.com',
-      to: email,
-      subject: 'Verify Your Email',
-      text: message,
-      html: `<p>${name}, thank you for signing up. Please verify your email by clicking the link below:</p><p><a href="${verifyEmailUrl}">${verifyEmailUrl}</a></p>`,
-    };
-    sendMail(mailOptions);
-  }
-
-function createToken(user) {
-    user.password = undefined
-    const payload = { _id: user._id,email: user.email,}
-    const options = {expiresIn: process.env.JWTEXPIRES_IN}
-    const token =  jwt.sign(payload, process.env.JWT_SECRET,options )
-    return token  
+   if(type === 'access'){
+     expiresIn = process.env.JWT_ACCESS_EXPIRES_IN;
+     secret = process.env.JWT_ACCESS_SECRET
+    }
+   if(type === 'refresh'){
+     expiresIn = process.env.JWT_REFRESH_EXPIRES_IN;
+     secret = process.env.JWT_REFRESH_SECRET
+    }
+   const token =  jwt.sign(user, secret,{expiresIn} )
+   return token  
 }
 
 export const getAllUsers = catchAsync(async function (req, res) {
@@ -88,11 +59,14 @@ export const updateAuther = catchAsync(async function (req, res, next) {
 
 
 export const signup = catchAsync(async function (req, res) {
-    const user = await Auth.create(req.body)
+ 
+    const user = await Auth.create({...req.body})
+    console.log(user);
     const token = user.createEmailVerifyToken()
     await user.save();
 
-    sendVerificationEmail({name:user.name,email:user.email,token })
+    const url = `${BASE_URL}/verify-email?token=${token}`
+    new Email({name:user.name,url,email:user.email}).verify()
 
     res.status(201).json({
         status: 'succes',
@@ -115,9 +89,9 @@ export const verifyEmail = catchAsync(async function (req, res,next) {
     user.emailVerifyToken = undefined;
     user.emailVerifyExpires = undefined;
     await user.save()
-    
+
     getTenantDB(user._id)
-    res.status(201).json('success')
+    res.status(201).json({msg:'success'})
 })
 
 
@@ -131,69 +105,91 @@ export const login = catchAsync(async function (req, res, next) {
     if (!user || !(await user.compairPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401))
     }
-    const token =  createToken(user)
-    res.cookie('access_token', token, {
+    const access_token =  createToken({id:user._id},'access')
+    const refresh_token =  createToken({id:user._id},'refresh')
+
+    await Token.create({user_id:user._id,token:refresh_token})
+    
+    const cokiesOptio = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
         httpOnly:true,
         secure:true,
         sameSite: 'None',
-        maxAge: 24 * 60 * 60 * 1000 
-    });
- 
-    signInLogger.info({user:user.email, message:'Sign-in successful'})
-    
+        maxAge:30 * 24 * 60 * 60 * 1000
+
+    }
+    res.cookie('access_token', access_token, cokiesOptio);
+    res.cookie('refresh_token', refresh_token, cokiesOptio);
+
     res.status(200).json({
-        token,
-        user,
+        access_token,
+        refresh_token,
+        user:{...user,password:undefined},
     })  
+    signInLogger.info({user:user.email, message:'Sign-in successful'})
 })
 
+
 export const logOut = catchAsync(async function (req, res) {
-    res.clearCookie('access_token', { httpOnly: true });
-    res.status(200).json( 'Logout successful' );
+    await Token.findOneAndDelete({token:req.cookies.refresh_token})
+    res.clearCookie('access_token', { httpOnly: true })
+    res.clearCookie('refresh_token', { httpOnly: true })
+    res.status(200).json();
 })
 
 
 export const protect = catchAsync(async function (req, res, next) {
-    let bearerToken = null
-    const bearerHeader = req.headers.authorization
-    if (bearerHeader) {
-        bearerToken = bearerHeader.split(' ')[1]
-    }
-    const cookieToken = req.cookies.access_token
 
-    const token =  cookieToken || bearerToken
+    const token = req.cookies.access_token || 
+    (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+
     if(!token){
         return next(new AppError("Unauthorized: Authentication token is missing.", 401));
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET ,(err,user)=> user || false)
 
     if(!decoded){
-        return next(new AppError("Unauthorized: Invalid authentication token.", 401));
+        const refresh_token = req.cookies.refresh_token
+        if(!refresh_token){ 
+            return next(new AppError("Refresh token is missing.", 401)); 
+        }
+        const isValidToken = await Token.findOne({token: refresh_token});
+        if(!isValidToken){ 
+            return next(new AppError("Invalid refresh token.", 401)); 
+        }
+        const decode = jwt.verify(refresh_token, process.env.JWT_REFRESH_SECRET, (err,user)=>  user || false);
+        if(!decode){
+             return next(new AppError("Invalid refresh token.", 401));
+        }
+        const access_token = createToken({id: decode.id},'access')
+        
+        const cookieOptions = {
+            expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+        }
+        res.cookie('access_token', access_token, cookieOptions)
+           .status(200).json()
+           return 
+    
     }
-    const freshUser = await Auth.findById(decoded._id)
+    const freshUser = await Auth.findById(decoded.id)
     if (!freshUser) {
         return next(
-            new AppError(
-                'The user belonging to this token does no longer exist!.',
-                201
-            )
+            new AppError('The user belonging to this token does no longer exist!.', 400)
         )
     }
     if (freshUser.changePasswordAfter(decoded.iat)) {
         return next(
-            new AppError(
-                'User resently changed password! Please log in again',
-                400
-            )
+            new AppError('User recently changed password! Please log in again.', 400)
         )
     }
- //   mongoose.connect(`mongodb+srv://.../${businessId}`)
     req.user = freshUser
     req.tenantId = freshUser._id
-   // getTenantDB(freshUser._id)
     next()
 })
+
 
 
 
@@ -236,11 +232,9 @@ export const changePassword = catchAsync(async function (req, res, next) {
     const resetToken = user.createPasswordResetToken();
     await user.save();
 
-    sendPasswordResetToken({
-        token: resetToken,
-        email: user.email,
-        name: user.name
-    });
+    const url = `${BASE_URL}/reset-password?token=${resetToken}&email=${email}`;
+    new Email({name:user.name,url,email:user.email}).passwordResetToken()
+
     res.status(200).json('Password reset email sent.');
 });
 
@@ -266,10 +260,10 @@ export const resetPassword = catchAsync(async function (req, res, next) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
-
+    
+    res.clearCookie('access_token', { httpOnly: true });
     res.status(200).json('Password reset successfully.');
 });
-
 
 
 
@@ -289,11 +283,8 @@ export const emailChangePin = catchAsync(async function (req, res, next) {
     user.pendingEmail = new_email
     await user.save();
 
-    sendEmailChangePin({
-        pin: resetPin,
-        email: new_email,
-        name: user.name
-    });
+    new Email({name:user.name,pin:resetPin,email:user.email}).emailChangePin()
+    
     res.status(200).json('Email change pin sent.');
 });
 

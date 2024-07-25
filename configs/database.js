@@ -10,20 +10,19 @@ dotenv.config()
   export const mongodb = mongoose.createConnection(process.env.MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+
+  
   });
 
  mongodb.once('open', () => {
-      //console.log(`Mongoose connection open`);
+      console.log(`Mongoose connection open`);
   });
 
-//Creating New MongoDb Connection obect by Switching DB
  export const getTenantDB = (tenantId) => {
-
     const dbName = `user_${tenantId}`;
-      // useDb will return new connection
       if (mongodb) {
-      const db = mongodb.useDb(dbName);
-      //console.log(`DB switched to ${dbName}`);
+      const db = mongodb.useDb(dbName,{ useCache: true });
+   
 
           db.model("Class", classSchema);
           db.model("Teacher",teacherShema);
@@ -34,7 +33,6 @@ dotenv.config()
       }
   };
   
-  //Return Model as per tenant
   export const getModelByTenant = (tenantId, modelName) => {
     const tenantDb = getTenantDB(tenantId);
     return tenantDb.model(modelName);

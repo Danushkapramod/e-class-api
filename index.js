@@ -11,8 +11,11 @@ import AppErrror from './utils/AppError.js'
 import userRouter from './routes/authRoutes.js'
 import optionRouter from './routes/optionRouts.js'
 import serviceRoutes from './routes/serviceRoutes.js'
+import studentRoutes from './routes/studentRouts.js'
 import assetRoutes from './routes/accetsRoutes.js'
 import {  combinedLogger } from './configs/logger.js'
+import { protect } from './controllers/authController.js'
+import { createStudent } from './controllers/studentControllers.js'
 
 const limiter = {
     windowMs: 15 * 60 * 1000, 
@@ -44,7 +47,11 @@ app.use('/api/v1/users',  userRouter)
 app.use('/api/v1/options', optionRouter)
 app.use('/api/v1/sendMail', serviceRoutes)
 app.use('/api/v1/assets',assetRoutes)
+app.use('/api/v1/students',studentRoutes )
 
+app.get('/api/v1',protect,(ewq,res)=>{
+    res.status(200).json(Math.ceil(Math.random() * 100000))
+})
 
 app.all('*', (req, res, next) => {
     next(new AppErrror(`Can't find ${req.originalUrl} on this server!`, 404))
