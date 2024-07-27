@@ -1,8 +1,9 @@
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {PutObjectCommand, DeleteObjectCommand} from '@aws-sdk/client-s3';
+import Jimp from "jimp";
 import { s3Client } from "../configs/aws-config.js";
 import QRCode from 'qrcode';
-import Jimp from "jimp";
+
 export class ImageHandle {
   constructor() {
     this.s3Client = s3Client
@@ -66,5 +67,20 @@ export async function qrGenarateUpload(fileName,bucket,qrData){
     console.error('Error uploading to S3:', err);
     throw err;
   }
+};
 
+
+export async function qrGenarateSave(fileName,qrData){
+  try {
+ const qrCodeBuffer = await QRCode.toBuffer(JSON.stringify(qrData),{scale:18});
+ const jimpImage = await Jimp.read(qrCodeBuffer);
+ const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+ jimpImage.print(font, 70, 16, `ID: ${qrData}`);
+ const retult =  await jimpImage.writeAsync(fileName)
+ return retult
+
+  } catch (err) {
+    console.error('Error uploading to S3:', err);
+    throw err;
+  }
 };

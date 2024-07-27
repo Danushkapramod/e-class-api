@@ -1,11 +1,13 @@
 import { sendMail } from '../configs/email.js'
+import path from 'path'
 
 export class Email{
-    constructor({name,url,email,pin}){
+    constructor({name,url,email,pin,file}){
         this.name = name;
         this.url = url;
         this.pin = pin;
         this.email = email;
+        this.file= file;
         this.styles = `* {
         margin: 0;
         padding: 0;
@@ -97,8 +99,13 @@ export class Email{
       }`
     }
 
-    verify(){
-     const message = `${this.name}, thank you for signing up. Please verify your email by clicking the link below:\n\n${this.url}`;   
+    studentQR(){
+     console.log(this.email,this.name,this.file);
+     console.log({
+        filename: path.basename(this.file),
+        path: path.dirname(this.file) ,
+      });
+     const message = `${this.name}, Your EduSuit QR-ID`;   
      const html = `
      <html lang="en">
        <head>
@@ -116,14 +123,10 @@ export class Email{
         </div>
         <div class="content">
             <p class="greeting">Hi ${this.name}</p>
-            <p>Thank you for signing up. Please verify your email by clicking the button below</p>
-            <div class="button-container">
-            <a href=${this.url} class="verify-button">Verify Email</a>
+            <p>Your EduSuit QR-ID</p>
             </div>
-            <p class="help-text">
-            If you have any issue confirming your email we will be happy to help you. You can contact
-            us on : <span class="help-email">edusuit.reply@gmail.com</span>
-            </p>
+             <img src="cid:unique@image.cid" />
+            
             <p class="closing">Regards,</p>
             <p>The EduSuit Team</p>
         </div>
@@ -137,13 +140,68 @@ export class Email{
      const mailOptions = {
         from: 'no-reply@yourdomain.com',
         to: this.email,
-        subject: 'Verify Your Email',
+        subject: 'EduSuit Student QR',
         text: message,
-        html
+        html:'Embedded image: <img src="cid:unique@nodemailer.com"/>',
+        attachments: [ 
+            {
+              filename: 'file.jpg',
+              path: 'file.jpg',
+              cid: 'unique@nodemailer.com'
+            }
+
+        ]
       };
       sendMail(mailOptions)
     }
-    
+
+    verify(){
+        const message = `${this.name}, thank you for signing up. Please verify your email by clicking the link below:\n\n${this.url}`;   
+        const html = `
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>EduSuit Email</title>
+            <style>
+            ${this.styles}
+            </style>
+           </head>
+        <body>
+           <div class="container">
+           <div class="header">
+               <p class="header-title">EduSuit</p>
+           </div>
+           <div class="content">
+               <p class="greeting">Hi ${this.name}</p>
+               <p>Thank you for signing up. Please verify your email by clicking the button below</p>
+               <div class="button-container">
+               <a href=${this.url} class="verify-button">Verify Email</a>
+               </div>
+               <p class="help-text">
+               If you have any issue confirming your email we will be happy to help you. You can contact
+               us on : <span class="help-email">edusuit.reply@gmail.com</span>
+               </p>
+               <p class="closing">Regards,</p>
+               <p>The EduSuit Team</p>
+           </div>
+           <div class="footer">
+               <p class="footer-title"></p>
+           </div>
+           </div>
+           </body>
+           </html>`
+        
+        const mailOptions = {
+           from: 'no-reply@yourdomain.com',
+           to: this.email,
+           subject: 'Verify Your Email',
+           text: message,
+           html
+         };
+         sendMail(mailOptions)
+       }
+
     emailChangePin(){
         const message = `${this.name}, you requested to change your email address. Your verification PIN is: ${this.pin}`;  
         const html = `

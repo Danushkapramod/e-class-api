@@ -15,23 +15,20 @@ const studentShema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// studentShema.pre('save', function (next) {
-//   if (this.isNew) {
-//     this.studentId = generate10DigitID();
-//   }
-//   next();
-// });
 studentShema.pre('save', function (next) {
+  if (this.isNew) {
+    this.studentId = generate10DigitID();
+  }
+  next();
+});
 
-    this.statusChangedAt = Date.now()
-    return next();
-})
-studentShema.pre('findOneAndUpdate', function (next) {
+studentShema.pre('findOneAndUpdate', async function (next) {
     const update = this.getUpdate();
-    if (update.$set && update.$set.status) {
-      this.set({ statusChangedAt: Date.now() });
+    
+    if (update.status){
+    update.statusChangedAt = Date.now()
+    this.setUpdate(update);
     }
-    next();
-  });
-
+    next(); 
+  })
 export const Student = mongodb.model('Student', studentShema);

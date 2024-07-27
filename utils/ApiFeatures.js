@@ -6,7 +6,7 @@ export class ApiFeatures {
 
     filtering() {
         const queryObj = { ...this.req.query }
-        const excludField = ['page', 'sort', 'limit', 'fields', 'teacher',]
+        const excludField = ['page', 'sort', 'limit', 'fields', 'teacher','search']
         excludField.forEach((el) => {
             delete queryObj[el]
         })
@@ -36,6 +36,14 @@ export class ApiFeatures {
         return this
     }
 
+    searching() {
+        if (this.req.query.search) {
+            const query = { name: { $regex: this.req.query.search, $options: "i" } };
+            this.query = this.query.find(query)
+        }
+        return this
+    }
+
     pagination() {
         if (this.req.query.page) {
             const page = this.req.query.page * 1 || 1
@@ -57,4 +65,6 @@ export class ApiFeatures {
         }
         return this
     }
+
+    
 }
