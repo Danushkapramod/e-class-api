@@ -15,7 +15,11 @@ import studentRoutes from './routes/studentRouts.js'
 import assetRoutes from './routes/accetsRoutes.js'
 import {  combinedLogger } from './configs/logger.js'
 import { protect } from './controllers/authController.js'
-import { createStudent } from './controllers/studentControllers.js'
+import multer from'multer'
+import { imgUploadFile, uploadBuffer} from './configs/multer.js'
+import sharp from 'sharp'
+import { ImageHandle } from './utils/ImageHandle.js'
+
 
 const limiter = {
     windowMs: 15 * 60 * 1000, 
@@ -41,6 +45,16 @@ app.use(helmet())
 app.use(rateLimit(limiter));
 app.use(cors(corsOptions));
 
+app.post('/api/v1/profile',protect, uploadBuffer,async function (req, res, next) {
+   const buffer = await sharp(req.file.buffer)
+   .resize(256, 256)
+   .toBuffer()
+    console.log(req.file.buffer);
+    const img= new ImageHandle()
+   const resuld =  await img.uploadBuffer('assets.webp',"aws-bucket-e-class",buffer)
+   if(resuld) console.log('Uploaded success');
+    
+  })
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users',  userRouter)

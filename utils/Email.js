@@ -1,5 +1,6 @@
-import { sendMail } from '../configs/email.js'
 import path from 'path'
+import { sendMail } from '../configs/email.js'
+
 
 export class Email{
     constructor({name,url,email,pin,file}){
@@ -125,7 +126,7 @@ export class Email{
             <p class="greeting">Hi ${this.name}</p>
             <p>Your EduSuit QR-ID</p>
             </div>
-             <img src="cid:unique@image.cid" />
+             <img src="cid:imgAttachment" />
             
             <p class="closing">Regards,</p>
             <p>The EduSuit Team</p>
@@ -138,17 +139,21 @@ export class Email{
         </html>`
      
      const mailOptions = {
-        from: 'no-reply@yourdomain.com',
+        from: 'no-reply@e-class.com',
         to: this.email,
         subject: 'EduSuit Student QR',
         text: message,
-        html:'Embedded image: <img src="cid:unique@nodemailer.com"/>',
+        html,
         attachments: [ 
             {
-              filename: 'file.jpg',
-              path: 'file.jpg',
-              cid: 'unique@nodemailer.com'
-            }
+              filename: path.basename(this.file),
+              path: this.file,
+              cid: 'imgAttachment',
+            },
+            {
+              filename: path.basename(this.file),
+              path: this.file,
+            },
 
         ]
       };

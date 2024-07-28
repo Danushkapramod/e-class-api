@@ -32,9 +32,9 @@ const transporter = nodemailer.createTransport({
 });
 
 
-export async function sendMail({from,to,subject,text,html}) {
+export async function sendMail({from,to,subject,text,html,attachments}) {
   // send mail with defined transport object
-  const info = await transporter.sendMail({from, to, subject, text,html,});
+  const info = await transporter.sendMail({from, to, subject, text,html,attachments});
   console.log("Message sent: %s", info.messageId);
 
 }

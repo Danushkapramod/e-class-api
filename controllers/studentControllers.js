@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid';
 import { Student } from "../models/student.js";
 import AppErrror from "../utils/AppError.js";
@@ -5,7 +6,6 @@ import catchAsync from "../utils/catchAsync.js";
 import { qrGenarateSave, qrGenarateUpload } from "../utils/ImageHandle.js";
 import { ApiFeatures } from '../utils/ApiFeatures.js';
 import { Email } from '../utils/Email.js';
-import fs from 'fs'
 
 export const createStudent = catchAsync(async function(req,res,next){
 
@@ -14,7 +14,7 @@ async function sendQrWhatsapp({to,url}) {
     method: "POST",
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer EAAQMCLEWz1kBO0jrtInOGIq0Xnr9ld7TWKjEVMlRLMr2BwQUPxtbIZBZAXetxBuBH1eZCZBSy7oZAouZBtMC9CasTtrR0ExOZCMvTyaVXIv8mlkqMvjDBFvJIdgSRqcHYIf4XmWltHJFW1YKclyoqRETX8ewIUbah6bzqyK2gm9xuIoDzYZAfefDZBpdJVzjG9esVUIaPoifBwVr8P8Y9EXsZD',
+        'Authorization': 'Bearer EAAQMCLEWz1kBOxuOsIYZAPARssmZCY3811sFn5q8S9hTtZCroHfhMjymIaOtT9cfTGlusKwSkw98PD6bBXoy95aEssquXf9zZCnZCDpOlEnCkcv3ZCsViI2GnffTcIIOHZAxeKQb4eKLExa5R5Pb46lrTYwShPd4ZAiz6uZCUN1cvv2439EZC1SEuZB6XtiZAGsRXLVMmuD9wwi5jqrKntuWzFsZD',
     },
     body: JSON.stringify({
         messaging_product: "whatsapp",
@@ -38,7 +38,7 @@ async function sendQrGmail({email,name,file}) {
        return next(new AppErrror('Phone number is already in use.', 401));
     }    
     const student = await Student.create(req.body);
-    if( sendQr_whatsapp){
+    if(sendQr_whatsapp){
         const uuid = uuidv4()
         const qrData  = student.studentId.toString()
         const filename = `assets/images/sudent_qrs/${uuid}.png`
@@ -57,7 +57,7 @@ async function sendQrGmail({email,name,file}) {
         
         if(result){
             setTimeout(()=>{  sendQrGmail({email:req.body.gmail,name:req.body.name,file:filename})  },2000)  
-            setTimeout(()=>{  fs.unlinkSync(filename); },300000)  
+            setTimeout(()=>{  fs.unlinkSync(filename); },60000)  
         }
      } 
 

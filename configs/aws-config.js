@@ -17,6 +17,6 @@ const clientParams = {
 
 export const s3Client = new S3Client(clientParams);
 
-
+export const S3BASE_URL = 'https://aws-bucket-e-class.s3.eu-north-1.amazonaws.com/'
 
  

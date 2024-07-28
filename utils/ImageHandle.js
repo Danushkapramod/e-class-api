@@ -3,7 +3,10 @@ import {PutObjectCommand, DeleteObjectCommand} from '@aws-sdk/client-s3';
 import Jimp from "jimp";
 import { s3Client } from "../configs/aws-config.js";
 import QRCode from 'qrcode';
+import sharp from "sharp";
 
+
+const _bucket = "aws-bucket-e-class";
 export class ImageHandle {
   constructor() {
     this.s3Client = s3Client
@@ -27,6 +30,22 @@ export class ImageHandle {
     }
   }
 
+  async uploadBuffer(fileName, bucket,stream) {
+    try {
+      const putObjectParams = {
+          Bucket: bucket,
+          Body: stream, 
+          Key:fileName,
+          ContentType: 'image/webp'  
+      }
+      const result =  await this.s3Client.send( new PutObjectCommand(putObjectParams));
+      return result
+
+    } catch (error) {
+      console.error('Error uploading to S3:', error);
+      throw error;
+    }
+  }
 
   async delete(fileName, bucket) {
     try {
@@ -83,4 +102,74 @@ export async function qrGenarateSave(fileName,qrData){
     console.error('Error uploading to S3:', err);
     throw err;
   }
+};
+
+export async function uploadBuffer({fileName, bucket = _bucket,buffer}) {
+  try {
+    if(fileName && bucket && bucket){
+      const putObjectParams = {
+          Bucket: bucket,
+          Body: buffer, 
+          Key:fileName,
+          ContentType:'image/webp'
+      }
+      const result =  await s3Client.send( new PutObjectCommand(putObjectParams));
+      return result
+    }
+  } catch (error) {
+    console.error('Error uploading to S3:', error);
+    throw error;
+  }
+}
+
+export async function s3deleteFile({fileName, bucket = _bucket}) {
+  try {
+    const params = {
+      Bucket: bucket,
+      Key:fileName,
+    };
+    const command = new DeleteObjectCommand(params);
+    await s3Client.send(command);
+
+  } catch (error) {
+    console.error("Error deleting file from S3:", error);
+    throw error;
+  }
+
+}
+
+export async function updateBuffer({fileUrl,fileName, bucket = _bucket,buffer}) {
+  try {
+    if(fileUrl){
+      const oldFileName = fileUrl.split("amazonaws.com/")[1] 
+      s3deleteFile({fileName:oldFileName})
+    }
+    if(fileName && bucket && bucket){
+      const putObjectParams = {
+          Bucket: bucket,
+          Body: buffer, 
+          Key:fileName,
+          ContentType:'image/webp'
+      }
+      const result =  await s3Client.send( new PutObjectCommand(putObjectParams));
+      return result
+  }
+  } catch (error) {
+    console.error('Error uploading to S3:', error);
+    throw error;
+  }
+}
+
+export async function resizeImage({buffer,width,height}){
+    try {
+      const resizedBuffer = await sharp(buffer)
+        .resize(width, height)
+        .toBuffer();
+      return resizedBuffer;
+
+    } catch (error) {
+      console.error('Error resizing image buffer:', error);
+      throw error;
+    }
+  
 };
