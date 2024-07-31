@@ -167,7 +167,7 @@ if(category === 'teacher'){
     let length = 0;
     const date = formatDate()
     const rows = data.map(({ subject, name,phone},index) => 
-             { 
+            { 
              length += 1   
              return `<tr>
                     <td>${(index+1).toString().padStart(2, '0')}</td>
@@ -297,6 +297,218 @@ if(category === 'teacher'){
 </body>
 </html>`
 }
+
+ const rangeList = []
+ const length = data.length;
+   // const date = formatDate()
+  function calculateRangeList(){
+    const page1 = 66;
+    const other = 70;
+    const isHasOtheePage = length > 66
+    rangeList.push([[0,page1/2],[page1/2,page1]])
+    console.log("----------1",isHasOtheePage,rangeList);
+    if(isHasOtheePage){
+        let otherPageStartAt = page1;
+        const otherPagesCount = Math.ceil((length - page1) / other)
+        for(let i = 0;i<otherPagesCount;i++){
+            const side1 = [otherPageStartAt,otherPageStartAt+(other/2)]
+            const side2 = [otherPageStartAt + (other/2),otherPageStartAt+other]
+            rangeList.push([side1,side2])
+            otherPageStartAt +=  other
+        }
+    }
+  }
+
+  function setSide(side){
+    const side1Ranges = rangeList.map((range)=>range[side])
+     const side1Htm = side1Ranges.map(([start,end])=>
+         data.slice(start,end).map(({ studentId, name }, index) => `<tr>
+              <td>${(index + 1).toString().padStart(2, '0')}</td>
+              <td>${studentId}</td>
+              <td>
+                <div class="namefield">${name}</div>
+              </td>
+              <td></td>
+            </tr>`
+          ).join('')
+      
+    )
+    return side1Htm
+  }
+ 
+
+
+if(category === 'classPaymentSheet'){
+
+  calculateRangeList()
+ console.log('----------2',rangeList);
+
+  const side1 = setSide(0)
+  const side2 = setSide(1)
+
+
+  console.log('------3',side1);
+  console.log('------4',side2);
+//   const rows1 = data
+//   .slice(0,33)  // Limit the number of rows to the first 5 elements
+//   .map(({ studentId, name }, index) => 
+//     `<tr>
+//       <td>${(index + 1).toString().padStart(2, '0')}</td>
+//       <td>${studentId}</td>
+//       <td>
+//         <div class="namefield">${name}</div>
+//       </td>
+//       <td></td>
+//     </tr>`
+//   )
+//   .join('');
+
+//   const rows2 = data
+//   .slice(33, 66)  // Limit the number of rows to the first 5 elements
+//   .map(({ studentId, name }, index) => 
+//     `<tr>
+//       <td>${(index + 1).toString().padStart(2, '0')}</td>
+//       <td>${studentId}</td>
+//       <td>
+//         <div class="namefield">${name}</div>
+//       </td>
+//       <td></td>
+//     </tr>`
+//   )
+//   .join('');
+ html = `<html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+     @page {
+        margin: 1cm; /* Adjust the margin as needed */
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        margin: 0;
+      }
+      .container {
+        width: 100%;
+      }
+      table {
+        width: 100%;
+        border: 1px solid black;
+        color: #000000;
+      }
+      th,
+      td {
+        padding: 4px 8px;
+        text-align: left;
+      }
+      tr {
+        border-bottom: 1px solid black;
+      }
+      td {
+        font-size: 14px;
+        border-right: 1px solid black;
+      }
+      th {
+        font-weight: 600;
+        font-size: 14px;
+        border-right: 1px solid black;
+      }
+      .section {
+        padding-left: 1rem /* 16px */;
+        padding-right: 1rem /* 16px */;
+        width: 100%;
+      }
+      .nameField{
+        white-space: nowrap;
+        max-width: 12rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="section">
+        <div style="display: flex; justify-content: space-between; width: 100%; font-size: 0.875rem;">
+          <div style="font-weight: 500; flex-basis: 24rem;">
+            <div style="display: flex;">
+              <div style="flex-basis: 3.5rem;">City</div>
+              <div>: Karandeniya</div>
+            </div>
+            <div style="display: flex;">
+              <div style="flex-basis: 3.5rem;">Teacher</div>
+              <div>: Ravinrajamanukula</div>
+            </div>
+            <div style="display: flex;">
+              <div style="flex-basis: 3.5rem;">Class</div>
+              <div>: Physics & 13</div>
+            </div>
+          </div>
+        
+          <div style="font-weight: 500; flex-basis: 10rem; display: flex; gap: 0.25rem; flex-direction: column; justify-content: center;">
+            <div style="display: flex; align-items: center;">
+              <div style="margin-right: 0.25rem; flex-basis: 3.5rem;">Amount</div>:
+              <div style="height: 1rem; width: 5rem; border-bottom: 1px solid black;"></div>
+            </div>
+            <div style="display: flex; align-items: center;">
+              <div style="margin-right: 0.25rem; flex-basis: 3.5rem;">Paids</div>:
+              <div style="height: 1rem; width: 5rem; border-bottom: 1px solid black;"></div>
+            </div>
+          </div>
+        
+          <div style="flex: 0 0 5rem; display: flex; justify-content: space-between; flex-direction: column; align-items: flex-end;">
+            <div>04/12/2005</div>
+            <div>21 Total</div>
+          </div>
+        </div>
+        
+      </div>
+      <div style="width: 100%; display: flex; flex-wrap: wrap; margin-top: 0.25rem; align-items:start;">
+        <table style="flex-basis: 50%;">
+          <thead>
+            <tr>
+              <th style="width: 1px;">#</th>
+              <th style="width: 1px;">ID</th>
+              <th>Name</th>
+              <th style="width: 40px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#000000">
+                  <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
+                </svg>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          ${side1}
+          </tbody>
+        </table>
+        <table style="flex-basis: 50%;">
+          <thead>
+            <tr>
+              <th style="width: 1px;">#</th>
+              <th style="width: 1px;">ID</th>
+              <th>Name</th>
+              <th style="width: 40px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#000000">
+                  <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
+                </svg>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          ${side2}
+          </tbody>
+        </table>
+      </div>
+      
+  </body>
+</html>
+`
+}
+
+
+
 
 return html
 }

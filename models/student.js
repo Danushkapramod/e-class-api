@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
+import mongooseSequence from 'mongoose-sequence';
 import { mongodb } from '../configs/database.js';
-import { generate10DigitID } from '../utils/random.Genarates.js';
+
+const AutoIncrement = mongooseSequence(mongodb);
 
 const studentShema = new mongoose.Schema({
-  studentId: { type: String, unique: true },
+  studentId: { type: Number, unique: true },
   name: { type: String, lowercase: true },
-  phone: { type: String, unique: true },
+  phone: { type: String, },
   status: {
     type: String,
     enum: ['half', 'paid', 'unpaid', 'free'],
@@ -15,20 +17,17 @@ const studentShema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-studentShema.pre('save', function (next) {
-  if (this.isNew) {
-    this.studentId = generate10DigitID();
-  }
-  next();
-});
-
 studentShema.pre('findOneAndUpdate', async function (next) {
     const update = this.getUpdate();
-    
     if (update.status){
     update.statusChangedAt = Date.now()
     this.setUpdate(update);
     }
     next(); 
   })
+
+studentShema.plugin(AutoIncrement, {
+   inc_field: 'studentId', 
+   start_seq: 1000
+  });
 export const Student = mongodb.model('Student', studentShema);

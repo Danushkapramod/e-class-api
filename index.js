@@ -19,6 +19,7 @@ import multer from'multer'
 import { imgUploadFile, uploadBuffer} from './configs/multer.js'
 import sharp from 'sharp'
 import { ImageHandle } from './utils/ImageHandle.js'
+import { exportClassPaymentSheetPdf } from './controllers/accetControllers.js'
 
 
 const limiter = {
@@ -61,11 +62,9 @@ app.use('/api/v1/users',  userRouter)
 app.use('/api/v1/options', optionRouter)
 app.use('/api/v1/sendMail', serviceRoutes)
 app.use('/api/v1/assets',assetRoutes)
-app.use('/api/v1/students',studentRoutes )
+app.use('/api/v1/students',studentRoutes)
 
-app.get('/api/v1',protect,(ewq,res)=>{
-    res.status(200).json(Math.ceil(Math.random() * 100000))
-})
+app.get('/api/v1',exportClassPaymentSheetPdf)
 
 app.all('*', (req, res, next) => {
     next(new AppErrror(`Can't find ${req.originalUrl} on this server!`, 404))

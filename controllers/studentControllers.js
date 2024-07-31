@@ -38,28 +38,29 @@ async function sendQrGmail({email,name,file}) {
        return next(new AppErrror('Phone number is already in use.', 401));
     }    
     const student = await Student.create(req.body);
-    if(sendQr_whatsapp){
-        const uuid = uuidv4()
-        const qrData  = student.studentId.toString()
-        const filename = `assets/images/sudent_qrs/${uuid}.png`
-        const result =  await qrGenarateUpload(filename,'aws-bucket-e-class',qrData)
-        
+
+    if(sendQr_whatsapp || sendQrGmail){
+        const qrData  = `${student._id.toString()} | ${student.studentId}`
+        const qrLabel = student.studentId
+        const filename = `assets/images/sudent_qrs/${student._id}.png`
+
+      if(sendQrWhatsapp){
+        const result =  await qrGenarateUpload(filename,'aws-bucket-e-class',qrData,qrLabel)
         if(result.$metadata.httpStatusCode === 200){
             const qrUrl = 'https://aws-bucket-e-class.s3.eu-north-1.amazonaws.com/'+filename
             console.log(qrUrl );
             setTimeout(()=>{  sendQrWhatsapp({to:req.body.phone,url:qrUrl}) },2000)  
         }
-     } 
-     if(sendQr_gmail){
-        const qrData  = student.studentId.toString()
-        const filename = `assets/temp/EduSuit_${qrData}.jpg`
-        const result =  await qrGenarateSave(filename,qrData)
-        
-        if(result){
+      }
+       if(sendQr_gmail){
+         const result =  await qrGenarateSave(filename,qrData,qrLabel)
+         if(result){
             setTimeout(()=>{  sendQrGmail({email:req.body.gmail,name:req.body.name,file:filename})  },2000)  
             setTimeout(()=>{  fs.unlinkSync(filename); },60000)  
-        }
-     } 
+         }
+     }
+    } 
+     
 
     res.status(201).json({
         message:"success",

@@ -65,12 +65,12 @@ export class ImageHandle {
 }
 
 
-export async function qrGenarateUpload(fileName,bucket,qrData){
+export async function qrGenarateUpload(fileName,bucket,qrData,qrLabel){
   try {
- const qrCodeBuffer = await QRCode.toBuffer(JSON.stringify(qrData),{scale:18});
+ const qrCodeBuffer = await QRCode.toBuffer(qrData,{scale:18});
  const jimpImage = await Jimp.read(qrCodeBuffer);
  const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
- jimpImage.print(font, 70, 16, `ID: ${qrData}`);
+ jimpImage.print(font, 70, 16, `ID: ${qrLabel}`);
  const toBuffer = await jimpImage.getBufferAsync(Jimp.MIME_PNG);
 
  const params = {
@@ -89,12 +89,12 @@ export async function qrGenarateUpload(fileName,bucket,qrData){
 };
 
 
-export async function qrGenarateSave(fileName,qrData){
+export async function qrGenarateSave(fileName,qrData,qrLabel){
   try {
- const qrCodeBuffer = await QRCode.toBuffer(JSON.stringify(qrData),{scale:18});
+ const qrCodeBuffer = await QRCode.toBuffer(qrData,{scale:18});
  const jimpImage = await Jimp.read(qrCodeBuffer);
  const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
- jimpImage.print(font, 70, 16, `ID: ${qrData}`);
+ jimpImage.print(font, 70, 16, `ID: ${qrLabel}`);
  const retult =  await jimpImage.writeAsync(fileName)
  return retult
 
