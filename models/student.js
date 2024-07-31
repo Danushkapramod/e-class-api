@@ -17,7 +17,13 @@ const studentShema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-studentShema.pre('findOneAndUpdate', async function (next) {
+studentShema.plugin(AutoIncrement, {
+   inc_field: 'studentId', 
+   start_seq: 1000
+  });
+
+
+studentShema.pre(['updateMany','findOneAndUpdate'], async function (next) {
     const update = this.getUpdate();
     if (update.status){
     update.statusChangedAt = Date.now()
@@ -26,8 +32,5 @@ studentShema.pre('findOneAndUpdate', async function (next) {
     next(); 
   })
 
-studentShema.plugin(AutoIncrement, {
-   inc_field: 'studentId', 
-   start_seq: 1000
-  });
+
 export const Student = mongodb.model('Student', studentShema);

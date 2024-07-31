@@ -56,10 +56,13 @@ export const exportClassPdf = catchAsync(async function (req, res, next) {
         })
 });
 
+
+
 export const exportClassPaymentSheetPdf = catchAsync(async function (req, res, next) {
     const data = await Student.find()
+
     const filename = `assets/pdf/output.pdf`;
-    await exportPdf(data, filename,'classPaymentSheet')
+    await exportPdf(data, filename,'paymentsSheet')
         res.download( filename, (err) => {
             if (err) {
                 return next(err);
@@ -67,6 +70,36 @@ export const exportClassPaymentSheetPdf = catchAsync(async function (req, res, n
             res.status(200).json();
         })
 });
+
+export const exportStudentCvs = catchAsync(async function (req, res, next) {
+    const data = await Student.find().select('-__v').lean(); 
+    
+    const filename = `assets/csv/student.csv`;  
+    await exportCvs(data, filename,'student'); 
+        res.download( filename, (err) => {
+            if (err) {
+                return next(err);
+            }
+            res.status(200).json();
+        })
+});
+
+
+export const exportStudentPdf = catchAsync(async function (req, res, next) {
+    const data = await Student.find()
+    const filename = `assets/pdf/students.pdf`;
+    await exportPdf(data, filename,'student')
+        res.download( filename, (err) => {
+            if (err) {
+                return next(err);
+            }
+            res.status(200).json();
+        })
+});
+
+
+
+
 
 export const exportTeacherCvs = catchAsync(async function (req, res, next) {
     const Teacher = getModelByTenant(req.tenantId,'Teacher')

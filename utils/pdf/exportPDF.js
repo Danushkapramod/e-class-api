@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { generateHTML } from "./genarateHTML.js";
+import { footer, generateHTML } from "./genarateHTML.js";
 
 export async function exportPdf(data,fileName,category) {
     try {
@@ -10,12 +10,16 @@ export async function exportPdf(data,fileName,category) {
         args: ['--no-sandbox', '--disable-setuid-sandbox'], // Add these arguments for environments that require them
         // executablePath: '/path/to/your/chrome' // Uncomment this line and set the path if needed
       });
-      
       const page = await browser.newPage();
       const htmlContent =  generateHTML(data,category);
-  
+
       await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 60000 }); // Increase timeout here as well
-      await page.pdf({ path: fileName, printBackground: true, format: 'A4' });
+      await page.pdf({ path: fileName, format: 'A4',
+        displayHeaderFooter: true,
+        printBackground:true,
+        footerTemplate: footer,
+   
+     });
   
       await browser.close();
       console.log('PDF created successfully');

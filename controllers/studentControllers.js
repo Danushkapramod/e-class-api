@@ -1,5 +1,4 @@
 import fs from 'fs'
-import { v4 as uuidv4 } from 'uuid';
 import { Student } from "../models/student.js";
 import AppErrror from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -61,7 +60,6 @@ async function sendQrGmail({email,name,file}) {
      }
     } 
      
-
     res.status(201).json({
         message:"success",
         body:{student}
@@ -69,7 +67,7 @@ async function sendQrGmail({email,name,file}) {
 })
 
 export const getStudents = catchAsync(async function (req, res) {
-    const apiFeatures = new ApiFeatures(req,Student).filtering().searching()
+    const apiFeatures = new ApiFeatures(req,Student).filtering().searching().limiting()
 
     const students = await apiFeatures.query
     res.status(200).json({
@@ -97,5 +95,37 @@ export const deleteStudent = catchAsync(async function (req, res) {
     await Student.findByIdAndDelete(req.params.id)
     res.status(200).json({
         status: 'succes',
+    })
+})
+
+export const deleteSelectedStudents = catchAsync(async function (req, res,next) {
+    const {studentIds} = req.body
+    if (!studentIds) {
+        return next(new AppErrror('No Student found', 404))
+    }
+    await Student.deleteMany({_id:{$in:studentIds}})
+    res.status(200).json({
+        status: 'succes',
+    })
+})
+
+export const updateSelectedStudents = catchAsync(async function (req, res,next) {
+    const {studentIds,newData} = req.body
+
+    if (!studentIds || !newData) {
+        return next(new AppErrror('No Student found', 404))
+    }
+    await Student.updateMany({_id:{$in:studentIds}},  newData )
+    res.status(200).json({
+        status: 'succes',
+    })
+})
+
+
+export const studentsTotal = catchAsync(async function (req, res) {
+      const  total = await Student.countDocuments({}); 
+      res.status(200).json({
+        status: 'succes',
+        body: { total },
     })
 })
