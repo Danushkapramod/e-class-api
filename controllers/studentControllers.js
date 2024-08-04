@@ -1,10 +1,11 @@
 import fs from 'fs'
-import { Student } from "../models/student.js";
 import AppErrror from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import { qrGenarateSave, qrGenarateUpload } from "../utils/ImageHandle.js";
 import { ApiFeatures } from '../utils/ApiFeatures.js';
 import { Email } from '../utils/Email.js';
+import { getModelByTenant } from '../configs/database.js';
+import { S3BASE_URL } from '../configs/aws-config.js';
 
 export const createStudent = catchAsync(async function(req,res,next){
 
@@ -13,7 +14,7 @@ async function sendQrWhatsapp({to,url}) {
     method: "POST",
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer EAAQMCLEWz1kBOxuOsIYZAPARssmZCY3811sFn5q8S9hTtZCroHfhMjymIaOtT9cfTGlusKwSkw98PD6bBXoy95aEssquXf9zZCnZCDpOlEnCkcv3ZCsViI2GnffTcIIOHZAxeKQb4eKLExa5R5Pb46lrTYwShPd4ZAiz6uZCUN1cvv2439EZC1SEuZB6XtiZAGsRXLVMmuD9wwi5jqrKntuWzFsZD',
+        'Authorization': 'Bearer EAAQMCLEWz1kBO5ya1G7MMLfeu7ikWh73BZASyqPbtiYZAJWBclIahZCWWX4ZAsGBivgndaFJW7GqNBjgQzpe6gVd1oAH5ZAPH7PaU2G0hP0DMDvm2bx27Y9eMdcrn77sHBrYMZCanR5K9lHIwcROaecU1wL8ScxhZBgzOJQbtqlIEAvN2BChWhrfef5GlTWlmGAZAhEAlZB7qiBZA8ZA8yCWD8ZD',
     },
     body: JSON.stringify({
         messaging_product: "whatsapp",
@@ -27,16 +28,24 @@ async function sendQrWhatsapp({to,url}) {
 }
 
 async function sendQrGmail({email,name,file}) {
-    new Email({email,name,file}).studentQR()
+    new Email({email:email.trim(),name,file}).studentQR()
 
 }
     const {name,phone,sendQr_gmail,sendQr_whatsapp} = req.body;
     if(!(name || phone)) return next(new AppErrror('Please enter minimum one input',400))
+    const Student = getModelByTenant(req.tenantId,'Student')
 
     if(phone && await Student.findOne({phone:phone.trim()})){
        return next(new AppErrror('Phone number is already in use.', 401));
-    }    
-    const student = await Student.create(req.body);
+    }
+     const Counter = getModelByTenant(req.tenantId,'Counter');
+     if (!await Counter.findOne({ for: "Student" })) {
+      await Counter.create({ for: "Student", sequenceValue: 1000 });
+     }
+     const counter = await Counter.findOneAndUpdate({for:"Student"},
+     { $inc: { sequenceValue: 1 } },{ new: true })
+
+    const student = await Student.create({...req.body,studentId:counter.sequenceValue});
 
     if(sendQr_whatsapp || sendQrGmail){
         const qrData  = `${student._id.toString()} | ${student.studentId}`
@@ -46,9 +55,9 @@ async function sendQrGmail({email,name,file}) {
       if(sendQrWhatsapp){
         const result =  await qrGenarateUpload(filename,'aws-bucket-e-class',qrData,qrLabel)
         if(result.$metadata.httpStatusCode === 200){
-            const qrUrl = 'https://aws-bucket-e-class.s3.eu-north-1.amazonaws.com/'+filename
+            const qrUrl = S3BASE_URL+filename
             console.log(qrUrl );
-            setTimeout(()=>{  sendQrWhatsapp({to:req.body.phone,url:qrUrl}) },2000)  
+            setTimeout(()=>{  sendQrWhatsapp({to:req.body.phone.trim(),url:qrUrl}) },2000)  
         }
       }
        if(sendQr_gmail){
@@ -60,23 +69,22 @@ async function sendQrGmail({email,name,file}) {
      }
     } 
      
-    res.status(201).json({
-        message:"success",
-        body:{student}
-    })  
+    res.status(201).json(student)  
 })
 
-export const getStudents = catchAsync(async function (req, res) {
-    const apiFeatures = new ApiFeatures(req,Student).filtering().searching().limiting()
+export const getStudents = catchAsync(async function (req, res,next) {
+    const {id} = req.params
+    if(!id) return next(new AppErrror('No class found with that ID', 404))
+        
+    const Student = getModelByTenant(req.tenantId,'Student')
+    const apiFeatures = new ApiFeatures(req,Student.find({classId:id})).filtering().searching().pagination()
 
     const students = await apiFeatures.query
-    res.status(200).json({
-        status: 'succes',
-        body: { students },
-    })
+    res.status(200).json( students)
 })
 
 export const updateStudent = catchAsync(async function (req, res, next) {
+    const Student = getModelByTenant(req.tenantId,'Student')
     const studentById = await Student.findByIdAndUpdate(
         req.params.id,
         req.body,
@@ -85,13 +93,11 @@ export const updateStudent = catchAsync(async function (req, res, next) {
     if (!studentById) {
         return next(new AppErrror('No Student found with that ID', 404))
     }
-    res.status(200).json({
-        status: 'succes',
-        body: { studentById },
-    })
+    res.status(200).json( studentById)
 })
 
 export const deleteStudent = catchAsync(async function (req, res) {
+    const Student = getModelByTenant(req.tenantId,'Student')
     await Student.findByIdAndDelete(req.params.id)
     res.status(200).json({
         status: 'succes',
@@ -103,6 +109,7 @@ export const deleteSelectedStudents = catchAsync(async function (req, res,next) 
     if (!studentIds) {
         return next(new AppErrror('No Student found', 404))
     }
+    const Student = getModelByTenant(req.tenantId,'Student')
     await Student.deleteMany({_id:{$in:studentIds}})
     res.status(200).json({
         status: 'succes',
@@ -115,6 +122,7 @@ export const updateSelectedStudents = catchAsync(async function (req, res,next) 
     if (!studentIds || !newData) {
         return next(new AppErrror('No Student found', 404))
     }
+    const Student = getModelByTenant(req.tenantId,'Student')
     await Student.updateMany({_id:{$in:studentIds}},  newData )
     res.status(200).json({
         status: 'succes',
@@ -123,9 +131,10 @@ export const updateSelectedStudents = catchAsync(async function (req, res,next) 
 
 
 export const studentsTotal = catchAsync(async function (req, res) {
-      const  total = await Student.countDocuments({}); 
-      res.status(200).json({
-        status: 'succes',
-        body: { total },
-    })
+    const {id} = req.params
+    if(!id) return
+
+    const Student = getModelByTenant(req.tenantId,'Student')
+     const  total = await Student.countDocuments({classId:id}); 
+      res.status(200).json( total)
 })

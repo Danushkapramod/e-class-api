@@ -11,6 +11,7 @@ router.route('/').get(protect,getStudents).post(protect,createStudent)
 router.route('/:id').patch(protect,updateStudent).delete(protect,deleteStudent)
 router.route('/deleteMany').post(protect,deleteSelectedStudents)
 router.route('/updateMany').post(protect,updateSelectedStudents)
-router.route('/total').get(protect,studentsTotal)
+router.route('/total/:id').get(protect,studentsTotal)
+router.route('/:id').get(protect,getStudents)
 
 export default router

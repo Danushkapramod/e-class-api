@@ -49,10 +49,6 @@ export class ApiFeatures {
             const page = this.req.query.page * 1 || 1
             const limit = this.req.query.limit * 1 || 100
             const skip = (page - 1) * limit
-            // const numItems = this.query.countDocuments();
-            // if (skip >= numItems) {
-            //     throw new Error('this page do not exist');
-            // }
             this.query = this.query.skip(skip).limit(limit)
             return this
         }

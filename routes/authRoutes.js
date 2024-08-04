@@ -11,8 +11,10 @@ import {
     resetPassword,
     signup,
     updateAuther,
+    updateUserAvatar,
     verifyEmail,
 } from '../controllers/authController.js'
+import { uploadBuffer } from '../configs/multer.js'
 
 const router = express.Router()
 
@@ -23,6 +25,7 @@ router.post('/reset-password',resetPassword)
 router.post('/forgot-password',forgotPassword)
 router.post('/change-password',protect,changePassword)
 router.patch("/me/update",protect,updateAuther)
+router.patch("/me/update-avatar",protect,uploadBuffer,updateUserAvatar)
 router.post('/logout',protect,logOut)
 router.post('/change-email-token', protect, emailChangePin)
 router.post('/change-email', protect, changeEmail)

@@ -1,11 +1,9 @@
 import mongoose from 'mongoose';
-import mongooseSequence from 'mongoose-sequence';
-import { mongodb } from '../configs/database.js';
 
-const AutoIncrement = mongooseSequence(mongodb);
 
-const studentShema = new mongoose.Schema({
-  studentId: { type: Number, unique: true },
+export const studentShema = new mongoose.Schema({
+  studentId: { type: String, unique: true },
+  classId:{type:mongoose.SchemaTypes.ObjectId,require:true},
   name: { type: String, lowercase: true },
   phone: { type: String, },
   status: {
@@ -16,11 +14,6 @@ const studentShema = new mongoose.Schema({
   statusChangedAt: Date,
   createdAt: { type: Date, default: Date.now },
 });
-
-studentShema.plugin(AutoIncrement, {
-   inc_field: 'studentId', 
-   start_seq: 1000
-  });
 
 
 studentShema.pre(['updateMany','findOneAndUpdate'], async function (next) {
@@ -33,4 +26,3 @@ studentShema.pre(['updateMany','findOneAndUpdate'], async function (next) {
   })
 
 
-export const Student = mongodb.model('Student', studentShema);

@@ -3,6 +3,7 @@ import cors from 'cors'
 import morgan from 'morgan'
 import express from 'express'
 import helmet from 'helmet'
+import sharp from 'sharp'
 import rateLimit from 'express-rate-limit'
 import cookieParser from 'cookie-parser'
 import classRouter from './routes/classRoutes.js'
@@ -15,9 +16,7 @@ import studentRoutes from './routes/studentRouts.js'
 import assetRoutes from './routes/accetsRoutes.js'
 import {  combinedLogger } from './configs/logger.js'
 import { protect } from './controllers/authController.js'
-import multer from'multer'
-import { imgUploadFile, uploadBuffer} from './configs/multer.js'
-import sharp from 'sharp'
+import { uploadBuffer} from './configs/multer.js'
 import { ImageHandle } from './utils/ImageHandle.js'
 import { exportClassPaymentSheetPdf } from './controllers/accetControllers.js'
 
@@ -46,16 +45,17 @@ app.use(helmet())
 app.use(rateLimit(limiter));
 app.use(cors(corsOptions));
 
-app.post('/api/v1/profile',protect, uploadBuffer,async function (req, res, next) {
-   const buffer = await sharp(req.file.buffer)
-   .resize(256, 256)
-   .toBuffer()
-    console.log(req.file.buffer);
-    const img= new ImageHandle()
-   const resuld =  await img.uploadBuffer('assets.webp',"aws-bucket-e-class",buffer)
-   if(resuld) console.log('Uploaded success');
-    
-  })
+app.use((req, res, next) => {
+    if (req.body && typeof req.body === 'object') {
+      Object.entries(req.body).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          req.body[key] = value.trim();
+        }
+      });
+    }
+    next();
+  });
+
 app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users',  userRouter)
@@ -63,8 +63,6 @@ app.use('/api/v1/options', optionRouter)
 app.use('/api/v1/sendMail', serviceRoutes)
 app.use('/api/v1/assets',assetRoutes)
 app.use('/api/v1/students',studentRoutes)
-
-app.get('/api/v1',exportClassPaymentSheetPdf)
 
 app.all('*', (req, res, next) => {
     next(new AppErrror(`Can't find ${req.originalUrl} on this server!`, 404))

@@ -10,10 +10,7 @@ export const getAllTeachers = catchAsync(async function (req, res) {
     const apiFeatures = new ApiFeatures(req,Teacher).filtering().pagination();
 
     const teachers = await apiFeatures.query;
-    res.status(200).json({
-        status: 'succes',
-        body: { teachers },
-    })
+    res.status(200).json( teachers )
 })
 
 export const getTeacherById = catchAsync(async function (req, res, next) {
@@ -23,10 +20,7 @@ export const getTeacherById = catchAsync(async function (req, res, next) {
     if (!teacherById) {
         return next(new AppError('No Teacher found with that ID', 404))
     }
-    res.status(200).json({
-        status: 'succes',
-        body: { teacherById },
-    })
+    res.status(200).json( teacherById )
 })
 
 export const updateTeacher = catchAsync(async function (req, res, next) {
@@ -53,10 +47,7 @@ export const updateTeacher = catchAsync(async function (req, res, next) {
     if (!teacherById) {
         return next(new AppError('No teacher found with that ID', 404))
     }
-    res.status(200).json({
-        status: 'succes',
-        body: { teacherById },
-    })
+    res.status(200).json( teacherById )
 })
 
 export const deleteTeacher = catchAsync(async function (req, res) {
@@ -86,18 +77,12 @@ export const createTeacher = catchAsync(async function (req, res) {
     const Teacher = getModelByTenant(req.tenantId,'Teacher')
     const newTeacher = await Teacher.create(req.body)
 
-    res.status(201).json({
-        status: 'succes',
-        body: { newTeacher },
-    })
+    res.status(201).json( newTeacher)
 })
 
 
 export const teacherTotal = catchAsync(async function (req, res) {
     const Teacher = getModelByTenant(req.tenantId,'Teacher')
       const  total = await Teacher.countDocuments({}); 
-      res.status(200).json({
-        status: 'succes',
-        body: { total },
-    })
+      res.status(200).json( total)
 })

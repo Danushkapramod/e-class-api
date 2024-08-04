@@ -16,19 +16,13 @@ export const getAllClasses = catchAsync(async function (req, res) {
         .withTeacher()
 
     const classes = await apiFeatures.query
-    res.status(200).json({
-        status: 'succes',
-        body: { classes },
-    })
+    res.status(200).json(classes)
 })
 
 export const classesTotal = catchAsync(async function (req, res) {
     const Class = getModelByTenant(req.tenantId,"Class")
      const total = await Class.countDocuments(); 
-      res.status(200).json({
-        status: 'succes',
-        body: { total },
-    })
+      res.status(200).json(total)
 })
 
 
@@ -38,10 +32,7 @@ export const getClassById = catchAsync(async function (req, res, next) {
     if (!classById) {
         return next(new AppError('No claas found with that ID', 404))
     }
-    res.status(200).json({
-        status: 'succes',
-        body: { classById },
-    })
+    res.status(200).json( classById)
 })
 
 export const updateClass = catchAsync(async function (req, res, next) {
@@ -63,10 +54,7 @@ export const updateClass = catchAsync(async function (req, res, next) {
     if (!classById) {
         return next(new AppError('No claas found with that ID', 404))
     }
-    res.status(200).json({
-        status: 'succes',
-        body: { classById },
-    })
+    res.status(200).json( classById)
 })
 
 export const deleteClass = catchAsync(async function (req, res) {
@@ -95,10 +83,7 @@ export const createClass = catchAsync(async function (req, res) {
       }
     const Class = getModelByTenant(req.tenantId,"Class")
     const newclass = await Class.create({...req.body,tenant_id:req.user.tenant_id})
-    res.status(201).json({
-        status: 'succes',
-        body: { newclass },
-    })
+    res.status(201).json(newclass)
 })
 
 

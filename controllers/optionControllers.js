@@ -34,10 +34,7 @@ export const getOptions = catchAsync(async function (req, res) {
         const Grade = getModelByTenant(req.tenantId,'Grade')
         options = await Grade.find()
     }
-    res.status(200).json({
-        status: 'succes',
-        body: { options },
-    })
+    res.status(200).json(options)
 })
 
 export const createOption = catchAsync(async function (req, res) {
@@ -54,10 +51,7 @@ export const createOption = catchAsync(async function (req, res) {
         const Grade = getModelByTenant(req.tenantId,'Grade')
         option = await Grade.create(req.body)
     }
-    res.status(201).json({
-        status: 'success',
-        body: { option },
-    })
+    res.status(201).json( option)
 })
 
 
@@ -75,10 +69,10 @@ export const optionTotal = catchAsync(async function (req, res) {
     } else if (req.query.option === 'grade') {
         const Grade = getModelByTenant(req.tenantId,'Grade')
         total = await Grade.countDocuments(); 
+    } else if (req.query.option === 'student') {
+        const Student = getModelByTenant(req.tenantId,'Student')
+        total = await Student.countDocuments(); 
     }
-    res.status(201).json({
-        status: 'success',
-        body: { total },
-    })
+    res.status(201).json( total )
 })
 

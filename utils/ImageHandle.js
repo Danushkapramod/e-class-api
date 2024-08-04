@@ -31,6 +31,7 @@ export class ImageHandle {
   }
 
   async uploadBuffer(fileName, bucket,stream) {
+    if(fileName && bucket && stream){
     try {
       const putObjectParams = {
           Bucket: bucket,
@@ -44,6 +45,7 @@ export class ImageHandle {
     } catch (error) {
       console.error('Error uploading to S3:', error);
       throw error;
+    }
     }
   }
 
@@ -66,7 +68,8 @@ export class ImageHandle {
 
 
 export async function qrGenarateUpload(fileName,bucket,qrData,qrLabel){
-  try {
+if(fileName && bucket && qrData){
+try {
  const qrCodeBuffer = await QRCode.toBuffer(qrData,{scale:18});
  const jimpImage = await Jimp.read(qrCodeBuffer);
  const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
@@ -86,11 +89,13 @@ export async function qrGenarateUpload(fileName,bucket,qrData,qrLabel){
     console.error('Error uploading to S3:', err);
     throw err;
   }
+}
 };
 
 
 export async function qrGenarateSave(fileName,qrData,qrLabel){
-  try {
+if(fileName && qrData) { 
+try {
  const qrCodeBuffer = await QRCode.toBuffer(qrData,{scale:18});
  const jimpImage = await Jimp.read(qrCodeBuffer);
  const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
@@ -102,9 +107,11 @@ export async function qrGenarateSave(fileName,qrData,qrLabel){
     console.error('Error uploading to S3:', err);
     throw err;
   }
+}
 };
 
 export async function uploadBuffer({fileName, bucket = _bucket,buffer}) {
+  if(fileName && bucket && bucket){
   try {
     if(fileName && bucket && bucket){
       const putObjectParams = {
@@ -119,28 +126,31 @@ export async function uploadBuffer({fileName, bucket = _bucket,buffer}) {
   } catch (error) {
     console.error('Error uploading to S3:', error);
     throw error;
-  }
+  } 
+}
 }
 
 export async function s3deleteFile({fileName, bucket = _bucket}) {
+  if(fileName && bucket){
   try {
     const params = {
       Bucket: bucket,
       Key:fileName,
     };
     const command = new DeleteObjectCommand(params);
-    await s3Client.send(command);
+    const result =  await s3Client.send(command);
+    return result
 
   } catch (error) {
     console.error("Error deleting file from S3:", error);
     throw error;
   }
-
+}
 }
 
 export async function updateBuffer({fileUrl,fileName, bucket = _bucket,buffer}) {
   try {
-    if(fileUrl){
+    if(fileUrl &&  bucket){
       const oldFileName = fileUrl.split("amazonaws.com/")[1] 
       s3deleteFile({fileName:oldFileName})
     }
@@ -161,6 +171,7 @@ export async function updateBuffer({fileUrl,fileName, bucket = _bucket,buffer}) 
 }
 
 export async function resizeImage({buffer,width,height}){
+  if(buffer){
     try {
       const resizedBuffer = await sharp(buffer)
         .resize(width, height)
@@ -171,5 +182,5 @@ export async function resizeImage({buffer,width,height}){
       console.error('Error resizing image buffer:', error);
       throw error;
     }
-  
-};
+  }
+}

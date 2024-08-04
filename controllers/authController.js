@@ -7,6 +7,8 @@ import {signInLogger } from '../configs/logger.js'
 import { getTenantDB } from '../configs/database.js'
 import { Email } from '../utils/Email.js'
 import { Token } from '../models/refreshTokens.js'
+import { S3BASE_URL } from '../configs/aws-config.js'
+import { resizeImage, s3deleteFile, updateBuffer } from '../utils/ImageHandle.js'
 
 dotenv.config()
 
@@ -46,11 +48,33 @@ export const updateAuther = catchAsync(async function (req, res, next) {
     const autherById = await Auth.findByIdAndUpdate(
         req.user._id,
         req.body,
-        {
-            new: true,
-            runValidators: true,
+        {new: true,
+         runValidators: true,
         }
     )
+    if (!autherById) {
+        return next(new AppError('No auther found with that ID', 404))
+    }
+    res.status(200).json({status: 'succes'})
+})
+
+export const updateUserAvatar = catchAsync(async function (req, res, next) {
+    if(req.file && req.file.buffer){
+        const resizedBuffer = await resizeImage({buffer:req.file.buffer,height:512,width:512})
+        const fileName = `assets/images/auth-avatars/user-${req.user._id}-${Date.now()}.webp`
+        const result =  await updateBuffer({fileUrl:req.body.oldAvatar,fileName,buffer:resizedBuffer})
+        if(result){
+           const avatar = `${S3BASE_URL}${fileName}`
+           req.body = {...req.body,avatar}
+          }
+     }else if(req.body.oldAvatar){
+        const oldFileName = req.body.oldAvatar.split("amazonaws.com/")[1] 
+        const result =  await s3deleteFile({fileName:oldFileName})
+        if(result){
+          req.body = {...req.body,avatar:''}  
+        }
+     }
+    const autherById = await Auth.findByIdAndUpdate(req.user._id,req.body)
     if (!autherById) {
         return next(new AppError('No auther found with that ID', 404))
     }

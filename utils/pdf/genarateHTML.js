@@ -15,7 +15,9 @@ function formatedstartTime(startTime) {
       .format('hh:mm A');
   }
   
-export function generateHTML(data,category){
+export function generateHTML(_data,category){
+
+ const {data,user,_class}  = _data
  let html;   
  if(category === 'class'){
     const date = formatDate()
@@ -467,6 +469,7 @@ if(category === 'student'){
 
 
 if(category === 'paymentsSheet'){
+  
   calculateRangeList()
   const side1 = setSide(0)
   const side2 = setSide(1)
@@ -521,15 +524,15 @@ if(category === 'paymentsSheet'){
       <div style=" flex-basis: 24rem;">
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">City</div>
-            <div>: Karandeniya</div>
+            <div style="text-transform: capitalize;">: ${user.metaData.city}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Teacher</div>
-            <div>: Ravinrajamanukula</div>
+            <div style="text-transform: capitalize";">: ${_class.teacher.name}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Class</div>
-            <div>: Physics & 13</div>
+            <div style="text-transform: capitalize;">: ${_class.subject} & ${_class.grade}</div>
           </div>
         </div>
         <div style="; flex-basis: 10rem; display: flex; gap: 0.25rem; flex-direction: column; justify-content: center;">

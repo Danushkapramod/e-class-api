@@ -46,6 +46,11 @@ const authSchema = new mongoose.Schema({
         lowercase: true,
         validate: validator.isEmail
     },
+    metaData:{
+        instituteName:String,
+        address:String,
+        city:String
+    },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,

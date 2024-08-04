@@ -5,15 +5,15 @@ import { protect } from '../controllers/authController.js'
 
 const router = express.Router()
 
-router.get('/classes-csv/get',protect, exportClassCvs)
-router.get('/classes-pdf/get', protect,exportClassPdf)
+router.post('/classes-csv/get',protect, exportClassCvs)
+router.post('/classes-pdf/get', protect,exportClassPdf)
 
-router.get('/teachers-csv/get',protect, exportTeacherCvs)
-router.get('/teachers-pdf/get',protect, exportTeacherPdf)
+router.post('/teachers-csv/get',protect, exportTeacherCvs)
+router.post('/teachers-pdf/get',protect, exportTeacherPdf)
 
-router.get('/students-csv/get',protect, exportStudentCvs)
-router.get('/students-pdf/get',protect, exportStudentPdf)
-router.get('/paymentsSheet-pdf/get',protect, exportClassPaymentSheetPdf)
+router.post('/students-csv/get/:id',protect, exportStudentCvs)
+router.post('/students-pdf/get/:id',protect, exportStudentPdf)
+router.post('/paymentsSheet-pdf/get/:id',protect, exportClassPaymentSheetPdf)
 
 
 router.post('/awsSignedUrl', getSignedAwsUrl)
