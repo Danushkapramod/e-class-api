@@ -8,7 +8,6 @@ export const studentShema = new mongoose.Schema({
   phone: { type: String, },
   status: {
     type: String,
-    enum: ['half', 'paid', 'unpaid', 'free'],
     default: 'unpaid'
   },
   statusChangedAt: Date,

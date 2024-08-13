@@ -82,7 +82,14 @@ export const getStudents = catchAsync(async function (req, res,next) {
     const students = await apiFeatures.query
     res.status(200).json( students)
 })
+export const getAllStudents = catchAsync(async function (req, res,next) {
 
+    const Student = getModelByTenant(req.tenantId,'Student')
+    const apiFeatures = new ApiFeatures(req,Student.find()).filtering().searching().pagination()
+
+    const students = await apiFeatures.query
+    res.status(200).json( students)
+})
 export const updateStudent = catchAsync(async function (req, res, next) {
     const Student = getModelByTenant(req.tenantId,'Student')
     const studentById = await Student.findByIdAndUpdate(
