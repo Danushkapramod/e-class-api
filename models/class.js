@@ -10,6 +10,17 @@ export const classSchema = new mongoose.Schema({
     duration: String,
     charging: Number,
     avatar: String,
+    isVisible:{type:Boolean,default:true},
     createdAt: { type: Date, default: Date.now },
+    hiddenAt: { type: Date },
 })
 
+
+classSchema.pre(['updateMany','findOneAndUpdate'], async function (next) {
+    const update = this.getUpdate();
+    if (Object.prototype.hasOwnProperty.call(update, 'isVisible')){
+    update.hiddenAt = Date.now()
+    this.setUpdate(update);
+    }
+    next(); 
+  })

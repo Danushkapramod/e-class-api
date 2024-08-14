@@ -12,16 +12,20 @@ export const studentShema = new mongoose.Schema({
   },
   statusChangedAt: Date,
   createdAt: { type: Date, default: Date.now },
+  isVisible:{type:Boolean,default:true},
+  hiddenAt:  Date ,
 });
 
 
 studentShema.pre(['updateMany','findOneAndUpdate'], async function (next) {
     const update = this.getUpdate();
     if (update.status){
-    update.statusChangedAt = Date.now()
-    this.setUpdate(update);
+     update.statusChangedAt = Date.now()
     }
+    if (Object.prototype.hasOwnProperty.call(update, 'isVisible')){
+     update.hiddenAt = Date.now()
+    }
+    this.setUpdate(update);
     next(); 
   })
-
 

@@ -7,12 +7,16 @@ import { resizeImage, s3deleteFile, updateBuffer, uploadBuffer } from '../utils/
 
 export const getAllTeachers = catchAsync(async function (req, res) {
     const Teacher = getModelByTenant(req.tenantId,'Teacher')
-    const apiFeatures = new ApiFeatures(req,Teacher).filtering().pagination();
+    const apiFeatures = new ApiFeatures(req,Teacher.find({isVisible:true})).filtering().pagination();
 
     const teachers = await apiFeatures.query;
     res.status(200).json( teachers )
 })
-
+export const getHiddenTeachers = catchAsync(async function (req, res) {
+    const Teacher = getModelByTenant(req.tenantId,'Teacher')
+    const teachers = await Teacher.find({isVisible:false})
+    res.status(200).json(teachers)
+})
 export const getTeacherById = catchAsync(async function (req, res, next) {
     const Teacher = getModelByTenant (req.tenantId,'Teacher')
     const teacherById = await Teacher.find(req.params.id)
@@ -48,6 +52,15 @@ export const updateTeacher = catchAsync(async function (req, res, next) {
         return next(new AppError('No teacher found with that ID', 404))
     }
     res.status(200).json( teacherById )
+})
+
+
+export const hideTeacher = catchAsync(async function (req, res, next) {
+    const {data,idList} = req.body
+    if(!data || !idList) return next()
+    const Teacher = getModelByTenant(req.tenantId,'Teacher')
+    await Teacher.updateMany({_id:{$in:idList}},data)
+    res.status(200).json()
 })
 
 export const deleteTeacher = catchAsync(async function (req, res) {

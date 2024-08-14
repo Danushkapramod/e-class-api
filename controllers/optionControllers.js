@@ -37,6 +37,8 @@ export const getOptions = catchAsync(async function (req, res) {
     res.status(200).json(options)
 })
 
+
+
 export const createOption = catchAsync(async function (req, res) {
     let option
     if (req.query.option === 'subject') {

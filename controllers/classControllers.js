@@ -8,7 +8,7 @@ import { S3BASE_URL } from '../configs/aws-config.js'
 
 export const getAllClasses = catchAsync(async function (req, res) {
     const Class = getModelByTenant(req.tenantId,"Class")
-    const apiFeatures = new ApiFeatures(req, Class)
+    const apiFeatures = new ApiFeatures(req, Class.find({isVisible:true}))
         .filtering()
         .sorting()
         .limiting()
@@ -86,4 +86,17 @@ export const createClass = catchAsync(async function (req, res) {
     res.status(201).json(newclass)
 })
 
+export const hideClass = catchAsync(async function (req, res, next) {
+    const {data,idList} = req.body
+    if(!data || !idList) return next()
+    const Class = getModelByTenant(req.tenantId,'Class')
+    await Class.updateMany({_id:{$in:idList}},data)
+    res.status(200).json()
+})
+
+export const getHiddenClasses = catchAsync(async function (req, res) {
+    const Class = getModelByTenant(req.tenantId,'Class')
+    const classes = await Class.find({isVisible:false})
+    res.status(200).json(classes)
+})
 
