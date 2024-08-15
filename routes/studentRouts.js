@@ -1,7 +1,7 @@
 import express from 'express'
 
 import { protect } from '../controllers/authController.js'
-import { createStudent, deleteSelectedStudents, deleteStudent, getAllStudents, getHiddenStudents, getStudents,
+import { createStudent, deleteManyStudents, deleteStudent, getAllStudents, getHiddenStudents, getStudents,
      hideStudent,
      studentsTotal,
      updateSelectedStudents, updateStudent } from '../controllers/studentControllers.js'
@@ -9,7 +9,7 @@ import { createStudent, deleteSelectedStudents, deleteStudent, getAllStudents, g
 const router = express.Router()
 
 router.route('/').get(protect,getAllStudents).post(protect,createStudent)
-router.route('/deleteMany').post(protect,deleteSelectedStudents)
+router.route('/deleteMany').post(protect,deleteManyStudents)
 router.route('/updateMany').post(protect,updateSelectedStudents)
 router.get('/hidden',protect,getHiddenStudents)
 router.patch('/hide',protect,hideStudent)

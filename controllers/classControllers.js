@@ -9,11 +9,13 @@ import { S3BASE_URL } from '../configs/aws-config.js'
 export const getAllClasses = catchAsync(async function (req, res) {
     const Class = getModelByTenant(req.tenantId,"Class")
     const apiFeatures = new ApiFeatures(req, Class.find({isVisible:true}))
+        .searching()
         .filtering()
         .sorting()
         .limiting()
         .pagination()
         .withTeacher()
+        
 
     const classes = await apiFeatures.query
     res.status(200).json(classes)
@@ -70,6 +72,29 @@ export const deleteClass = catchAsync(async function (req, res) {
     })
 })
 
+export const deleteManyClasses = catchAsync(async function (req, res,next) {
+    const {idList} = req.body
+    if (!idList) {
+        return next(new AppError('No Classes found', 404))
+     }
+    const Class = getModelByTenant(req.tenantId,'Class')
+    
+    const classesToDelete = await Class.find({_id:{$in:idList}});
+    const deleteResult = await Class.deleteMany({_id:{$in:idList}})
+
+    if (deleteResult.deletedCount === 0) {
+        return next(new AppError('No Classes were deleted', 404));
+    }
+    await Promise.all(classesToDelete.map(async (_class) => {
+        if (_class.avatar) {
+            const oldFileName = _class.avatar.split('amazonaws.com/')[1];
+            await s3deleteFile({ fileName: oldFileName });
+        }
+    }));
+    res.status(200).json({
+        status: 'succes',
+    })
+})
 export const createClass = catchAsync(async function (req, res) {
     if(req.file && req.file.buffer){
         const resizedBuffer = await resizeImage({buffer:req.file.buffer,height:256,width:256})

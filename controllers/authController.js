@@ -139,8 +139,6 @@ export const login = catchAsync(async function (req, res, next) {
         httpOnly:true,
         secure:true,
         sameSite: 'None',
-        maxAge:30 * 24 * 60 * 60 * 1000
-
     }
     res.cookie('access_token', access_token, cokiesOptio);
     res.cookie('refresh_token', refresh_token, cokiesOptio);
@@ -231,14 +229,17 @@ export const changePassword = catchAsync(async function (req, res, next) {
     user.password = newPassword;
     await user.save();
 
-    const token = createToken(user)
-    res.cookie('access_token', token, {
+    const access_token =  createToken({id:user._id},'access')
+    const refresh_token =  createToken({id:user._id},'refresh')
+
+    const cokiesOptio = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
         httpOnly:true,
-        secure: true,  
+        secure:true,
         sameSite: 'None',
-        maxAge: 24 * 60 * 60 * 1000  
-    });
+    }
+    res.cookie('access_token', access_token, cokiesOptio);
+    res.cookie('refresh_token', refresh_token, cokiesOptio);
     res.status(200).json({ message: 'Password changed successfully.' });
 });
 

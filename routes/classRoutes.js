@@ -4,6 +4,7 @@ import {
     classesTotal,
     createClass,
     deleteClass,
+    deleteManyClasses,
     getAllClasses,
     getClassById,
     getHiddenClasses,
@@ -19,6 +20,7 @@ const router = express.Router()
 router.route('/').get(protect,getAllClasses).post(protect,uploadBuffer,createClass)
 router.get('/hidden',protect,getHiddenClasses)
 router.route('/total').get(protect,classesTotal)
+router.route('/deleteMany').post(protect,deleteManyClasses)
 router.patch('/hide',protect,hideClass)
 router.route('/:id').get(protect,getClassById).patch(protect,uploadBuffer,updateClass).delete(protect,deleteClass)
 

@@ -77,7 +77,7 @@ export const getStudents = catchAsync(async function (req, res,next) {
     if(!id) return next(new AppErrror('No class found with that ID', 404))
         
     const Student = getModelByTenant(req.tenantId,'Student')
-    const apiFeatures = new ApiFeatures(req,Student.find({classId:id,isVisible:true})).filtering().searching().pagination()
+    const apiFeatures = new ApiFeatures(req,Student.find({classId:id,isVisible:true})).searching().filtering().pagination()
 
     const students = await apiFeatures.query
     res.status(200).json( students)
@@ -111,17 +111,19 @@ export const deleteStudent = catchAsync(async function (req, res) {
     })
 })
 
-export const deleteSelectedStudents = catchAsync(async function (req, res,next) {
-    const {studentIds} = req.body
-    if (!studentIds) {
+export const deleteManyStudents = catchAsync(async function (req, res,next) {
+    const {idList} = req.body
+    if (!idList) {
         return next(new AppErrror('No Student found', 404))
     }
     const Student = getModelByTenant(req.tenantId,'Student')
-    await Student.deleteMany({_id:{$in:studentIds}})
+    await Student.deleteMany({_id:{$in:idList}})
     res.status(200).json({
         status: 'succes',
     })
 })
+
+
 
 export const updateSelectedStudents = catchAsync(async function (req, res,next) {
     const {studentIds,newData} = req.body
@@ -160,3 +162,4 @@ export const hideStudent = catchAsync(async function (req, res, next) {
     await Student.updateMany({_id:{$in:idList}},data)
     res.status(200).json()
 })
+

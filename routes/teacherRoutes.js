@@ -1,6 +1,7 @@
 import express from 'express'
 import {
     createTeacher,
+    deleteManyTachers,
     deleteTeacher,
     getAllTeachers,
     getHiddenTeachers,
@@ -16,6 +17,7 @@ const router = express.Router()
 
 router.route('/').get(protect,getAllTeachers).post(protect,uploadBuffer,createTeacher)
 router.get('/total',protect,teacherTotal)
+router.route('/deleteMany').post(protect,deleteManyTachers)
 router.get('/hidden',protect,getHiddenTeachers)
 router.patch('/hide',protect,hideTeacher)
 router
