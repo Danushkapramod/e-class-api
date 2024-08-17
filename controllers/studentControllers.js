@@ -46,13 +46,12 @@ async function sendQrGmail({email,name,file}) {
      { $inc: { sequenceValue: 1 } },{ new: true })
 
     const student = await Student.create({...req.body,studentId:counter.sequenceValue});
-
-    if(sendQr_whatsapp || sendQrGmail){
+    if(sendQr_whatsapp || sendQr_gmail){
         const qrData  = `${student._id.toString()} | ${student.studentId}`
         const qrLabel = student.studentId
         const filename = `assets/images/sudent_qrs/${student._id}.png`
 
-      if(sendQrWhatsapp){
+      if(sendQr_whatsapp){
         const result =  await qrGenarateUpload(filename,'aws-bucket-e-class',qrData,qrLabel)
         if(result.$metadata.httpStatusCode === 200){
             const qrUrl = S3BASE_URL+filename
@@ -144,8 +143,8 @@ export const studentsTotal = catchAsync(async function (req, res) {
     if(!id) return
 
     const Student = getModelByTenant(req.tenantId,'Student')
-     const  total = await Student.countDocuments({classId:id}); 
-      res.status(200).json( total)
+     const total  = await Student.countDocuments({classId:id}); 
+      res.status(200).json(total)
 })
 
 export const getHiddenStudents = catchAsync(async function (req, res) {

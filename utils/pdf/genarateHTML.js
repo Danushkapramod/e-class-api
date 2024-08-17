@@ -440,6 +440,7 @@ if(category === 'student'){
     if(isHasOtheePage){
         let otherPageStartAt = page1;
         const otherPagesCount = Math.ceil((length - page1) / other)
+        // eslint-disable-next-line no-plusplus
         for(let i = 0;i<otherPagesCount;i++){
             const side1 = [otherPageStartAt,otherPageStartAt+(other/2)]
             const side2 = [otherPageStartAt + (other/2),otherPageStartAt+other]
@@ -449,7 +450,8 @@ if(category === 'student'){
     }
   }
 
-  function setSide(side){
+  
+   function setSide1(side){
     const side1Ranges = rangeList.map((range)=>range[side])
      const side1Htm = side1Ranges.map(([start,end])=>
          data.slice(start,end).map(({ studentId, name },index) => 
@@ -459,20 +461,36 @@ if(category === 'student'){
               <td>
                 <div class="namefield">${name}</div>
               </td>
-              <td></td>
+              <td class="statusField"></td>
             </tr>`
           ).join('')
     ).join('')
     return side1Htm
   }
- 
 
+  function setSide2(side){
+    const side1Ranges = rangeList.map((range)=>range[side])
+     const side1Htm = side1Ranges.map(([start,end])=>
+         data.slice(start,end).map(({ studentId, name,status
+          },index) => 
+           `<tr>
+              <td>${(start + 1+ index).toString().padStart(2, '0')}</td>
+              <td>${studentId}</td>
+              <td>
+                <div class="namefield">${name}</div>
+              </td>
+              <td class="statusField">${status}</td>
+            </tr>`
+          ).join('')
+    ).join('')
+    return side1Htm
+  }
 
 if(category === 'paymentsSheet'){
-  
+
   calculateRangeList()
-  const side1 = setSide(0)
-  const side2 = setSide(1)
+  const side1 = setSide1(0)
+  const side2 = setSide1(1)
 
  html = `
 <html>
@@ -523,8 +541,8 @@ if(category === 'paymentsSheet'){
       width: 100%; font-size: 0.875rem;">
       <div style=" flex-basis: 24rem;">
           <div style="display: flex;">
-            <div style="flex-basis: 3.5rem;">City</div>
-            <div style="text-transform: capitalize;">: ${user.metaData.city}</div>
+         <div style="flex-basis: 3.5rem;">Institute</div>
+            <div style="text-transform: capitalize;">: ${user.metaData.instituteName}, ${user.metaData.city}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Teacher</div>
@@ -535,7 +553,7 @@ if(category === 'paymentsSheet'){
             <div style="text-transform: capitalize;">: ${_class.subject} & ${_class.grade}</div>
           </div>
         </div>
-        <div style="; flex-basis: 10rem; display: flex; gap: 0.25rem; flex-direction: column; justify-content: center;">
+        <div style="flex-basis: 10rem; display: flex; gap: 0.25rem; flex-direction: column; justify-content: center;">
           <div style="display: flex; align-items: center;">
             <div style="margin-right: 0.25rem; flex-basis: 3.5rem;">Amount</div>:
             <div style="height: 1rem; width: 5rem; border-bottom: 1px solid black;"></div>
@@ -593,14 +611,137 @@ if(category === 'paymentsSheet'){
 `
 }
 
-return html
+
+
+
+if(category === 'paymentsSheetFilled'){
+  
+  calculateRangeList()
+  const side1 = setSide2(0)
+  const side2 = setSide2(1)
+
+ html = `
+<html>
+<head>
+  <style>
+    @page {
+       margin: 1cm;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      color: #000000;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 4px 8px;
+      text-align: left;
+      border: 1px solid #000000;
+    }
+    td {
+      font-size: 14px;
+    }
+    th {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .section {
+      padding-left: 0;
+      padding-right: 0;
+      width: 100%;
+    }
+    .nameField {
+      white-space: nowrap;
+      max-width: 12rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+     .statusField {
+      white-space: nowrap;
+      max-width: 4rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }  
+  </style>
+</head>
+<body style=" display: flex; flex-direction: column; align-items: center;">
+  <div style="width:100%">
+    <div class="section">
+      <div style="display: flex; justify-content: space-between; 
+      width: 100%; font-size: 0.875rem;">
+      <div style=" flex-basis: 24rem;">
+          <div style="display: flex;">
+            <div style="flex-basis: 3.5rem;">Institute</div>
+            <div style="text-transform: capitalize;">: ${user.metaData.instituteName}, ${user.metaData.city}</div>
+          </div>
+          <div style="display: flex;">
+            <div style="flex-basis: 3.5rem;">Teacher</div>
+            <div style="text-transform: capitalize";">: ${_class.teacher.name}</div>
+          </div>
+          <div style="display: flex;">
+            <div style="flex-basis: 3.5rem;">Class</div>
+            <div style="text-transform: capitalize;">: ${_class.subject} & ${_class.grade}</div>
+          </div>
+        </div>
+  
+        <div style="flex: 0 0 5rem; display: flex; justify-content: end; 
+        flex-direction: column; align-items: flex-end;">
+          <div>${data.length.toString().padStart(2,'0')} Total</div>
+        </div>
+      </div>
+    </div>
+    <div style="width: 100%; display: flex; margin-top: 0.25rem; align-items:start; justify-content:center;">
+      <table style="width:calc(50% - 1px); ${data.length < 33 && 'width: calc(100% - 2px) !important;'}">
+        <thead>
+          <tr>
+            <th style="width: 1px;">#</th>
+            <th style="width: 1px;">ID</th>
+            <th>Name</th>
+            <th style="width: 40px; text-align:center;">
+             Status
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          ${side1}
+        </tbody>
+      </table>
+     ${data.length > 34 ? `<table style="width:calc(50% - 1px);">
+        <thead>
+          <tr>
+            <th style="width: 1px;">#</th>
+            <th style="width: 1px;">ID</th>
+            <th>Name</th>
+            <th style="width: 40px; text-align:center;">
+             Status
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          ${side2}
+        </tbody>
+      </table>`:''}
+    </div>
+</body>
+</html>
+`
+}
+
+
+if(category === 'footer'){
+  return `<div style="font-size:14px; display: flex; align-items: center;
+            justify-content: space-between; padding:0 1cm; width:100%;">
+            <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
+             <div style="font-size:12px;"> ${user.metaData.instituteName} ${user.metaData.city}</div>
+            <div>${formatDate()}</div>
+           </div>`
 }
 
 
 
-export const footer =`<div style="font-size:14px; display: flex; align-items: center;
-                        justify-content: space-between; padding:0 1cm; width:100%;">
-                       <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
-                       <div style="font-size:10px;">EduSuit</div>
-                       <div>${formatDate()}</div>
-                     </div>`
+return html
+}

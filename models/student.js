@@ -5,7 +5,7 @@ export const studentShema = new mongoose.Schema({
   studentId: { type: String, unique: true },
   classId:{type:mongoose.SchemaTypes.ObjectId,require:true},
   name: { type: String, lowercase: true },
-  phone: { type: String, },
+  phone: { type: String, unique:false },
   status: {
     type: String,
     default: 'unpaid'
