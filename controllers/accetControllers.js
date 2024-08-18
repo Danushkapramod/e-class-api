@@ -103,7 +103,7 @@ export const exportClassPaymentsSheetFilledPdf = catchAsync(async function (req,
         })
 });
 
-export const exportClassPaymentsSheetFilledPdfBufferr = catchAsync(async function (req, res, next) {
+export const exportClassPaymentsSheetFilledPdfBuffer = catchAsync(async function (req, res, next) {
     const {id} = req.params
     if(!id) return next(new AppErrror('No class found with that ID', 404)) 
 
@@ -204,34 +204,7 @@ export const exportClassPaymentsSheetFilledPdfBufferr = catchAsync(async functio
     });
     
     return file.data.id;
-    
  }
-
-export const exportClassPaymentsSheetFilledPdfBuffer = catchAsync(async function (req, res, next) {
-    
-    const Class = getModelByTenant(req.tenantId, 'Class');
-    const Student = getModelByTenant(req.tenantId, 'Student');
-    const _class = await Class.find({isVisible: true}).populate('teacher').lean();
-    const backupResults = [];
-
-    if (_class.length) {
-      const edusultFolderId = await findOrCreateFolder('Edusult');
-      const classesFolderId = await findOrCreateFolder('classes', edusultFolderId);
-      const paymentSheetsFolderId = await findOrCreateFolder('paymentSheets', classesFolderId);
-
-      for (const classData of _class) {
-        const fileName = `${classData.subject}-${classData.grade}-${classData.teacher.name}.pdf`;
-        const data = await Student.find({classId: classData._id}).lean();
-        const buffer = await exportPdfBuffer({data, user: req.user, _class: classData}, 'paymentsSheetFilled');
-        const fileId = await uploadBufferToDrive(buffer, fileName, paymentSheetsFolderId);
-        backupResults.push({ fileId });
-      }
-    }
-    
-    
-    res.status(200).json({ message: 'Backup completed', results: backupResults });
-    
-});
 
 
 

@@ -147,6 +147,12 @@ export const studentsTotal = catchAsync(async function (req, res) {
       res.status(200).json(total)
 })
 
+export const studentsTotalAll = catchAsync(async function (req, res) {
+    const Student = getModelByTenant(req.tenantId,'Student')
+     const total  = await Student.countDocuments({isVisible:true}); 
+      res.status(200).json(total)
+})
+
 export const getHiddenStudents = catchAsync(async function (req, res) {
     const Student = getModelByTenant(req.tenantId,'Student')
     const students = await Student.find({isVisible:false})

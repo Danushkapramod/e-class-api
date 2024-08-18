@@ -10,12 +10,11 @@ import teacherRouter from './routes/teacherRoutes.js'
 import AppErrror from './utils/AppError.js'
 import userRouter from './routes/authRoutes.js'
 import optionRouter from './routes/optionRouts.js'
+import subItemRouter from './routes/subItemRout.js'
 import serviceRoutes from './routes/serviceRoutes.js'
 import studentRoutes from './routes/studentRouts.js'
 import assetRoutes from './routes/accetsRoutes.js'
 import {  combinedLogger } from './configs/logger.js'
-
-
 
 const limiter = {
     windowMs: 15 * 60 * 1000, 
@@ -57,6 +56,7 @@ app.use('/api/v1/classes', classRouter)
 app.use('/api/v1/teachers', teacherRouter)
 app.use('/api/v1/users',  userRouter)
 app.use('/api/v1/options', optionRouter)
+app.use('/api/v1/subItems', subItemRouter)
 app.use('/api/v1/services', serviceRoutes)
 app.use('/api/v1/assets',assetRoutes)
 app.use('/api/v1/students',studentRoutes)
