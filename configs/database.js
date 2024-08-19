@@ -9,6 +9,7 @@ import { studentShema } from '../models/student.js';
 import { counterShema } from '../models/counters.js';
 import { appSettingsSchema } from '../models/appSettings.js';
 import { subItemsShema } from '../models/subItems.js';
+import { attendancesShema } from '../models/attendances.js';
 
 dotenv.config()
   export const mongodb = mongoose.createConnection(process.env.MONGODB_URL, {
@@ -33,6 +34,7 @@ dotenv.config()
           db.model("Hall",hallShema);
           db.model("Subject",subjectShema);
           db.model("Sub_items",subItemsShema);
+          db.model("Attendance",attendancesShema);
       return db;
       }
   };

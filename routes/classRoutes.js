@@ -6,6 +6,7 @@ import {
     deleteClass,
     deleteManyClasses,
     getAllClasses,
+    getAttendances,
     getClassById,
     getHiddenClasses,
     hideClass,
@@ -23,5 +24,7 @@ router.route('/total').get(protect,classesTotal)
 router.route('/deleteMany').post(protect,deleteManyClasses)
 router.patch('/hide',protect,hideClass)
 router.route('/:id').get(protect,getClassById).patch(protect,uploadBuffer,updateClass).delete(protect,deleteClass)
+
+router.route('/attendance/:id').get(protect,getAttendances)
 
 export default router

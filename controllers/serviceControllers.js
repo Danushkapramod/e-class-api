@@ -6,15 +6,14 @@ import { Readable }from 'stream'
 import { DriveTokens } from "../models/drive_tokens.js";
 import AppErrror from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js"
-import { oauth2Client ,drive} from "../configs/googleDrive.js";
+import { oauth2Client ,drive, setDriveCredentials} from "../configs/googleDrive.js";
 import { getModelByTenant } from "../configs/database.js";
 import { exportPdfBuffer } from "../utils/pdf/exportPDF.js";
 
 const people = google.people({ version: 'v1', auth: oauth2Client });
 
 async function findOrCreateFolder(folderName, parentId = null) {
-    const query = `mimeType='application/vnd.google-apps.folder' and name='
-    ${folderName}' and trashed=false ${parentId ? `and '${parentId}' in parents` : ''}`;
+    const query = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false ${parentId ? `and '${parentId}' in parents` : ''}`;
     const res = await drive.files.list({ q: query, fields: 'files(id, name)' });
     
     if (res.data.files.length > 0) {
@@ -79,7 +78,17 @@ async function uploadBufferToDrive(buffer, fileName, folderId) {
 
 
 
- export const getBackupAccount = catchAsync(async function (req, res,next) {
+
+const getAndSetDriveCredentials = async(userId)=>{
+    const drive = await DriveTokens.findOne({userId}) 
+    if(drive && drive.accessToken && drive.refreshToken){
+       setDriveCredentials(drive.accessToken,drive.refreshToken)  
+    }
+}
+
+
+ export const getBackupAccount = catchAsync(async function (req, res) {
+    await getAndSetDriveCredentials(req.tenantId)  
     const resp = await people.people.get({
         resourceName: 'people/me',
         personFields: 'emailAddresses',
@@ -112,22 +121,93 @@ export const driveOauthSignup = catchAsync(async function (req, res,next) {
 })
 
 
+
+
+
 export const backupClassPayments = catchAsync(async function (req, res) {
+    const backupResults = [];
     const Class = getModelByTenant(req.tenantId, 'Class');
     const Student = getModelByTenant(req.tenantId, 'Student');
     const _class = await Class.find({isVisible: true}).populate('teacher').lean();
-    const backupResults = [];
-
+    
     if (_class.length) {
+      getAndSetDriveCredentials(req.tenantId)  
       const edusultFolderId = await findOrCreateFolder('Edusult');
-      const classesFolderId = await findOrCreateFolder('classes', edusultFolderId);
-      const paymentSheetsFolderId = await findOrCreateFolder('paymentSheets', classesFolderId);
+      const classFolderId = await findOrCreateFolder('class', edusultFolderId);
+      const paymentSheetsFolderId = await findOrCreateFolder('paymentSheets', classFolderId);
 
       for (const classData of _class) {
         const fileName = `${classData.subject}-${classData.grade}-${classData.teacher.name}.pdf`;
-        const data = await Student.find({classId: classData._id}).lean();
-        const buffer = await exportPdfBuffer({data, user: req.user, _class: classData}, 'paymentsSheetFilled');
+        const _student = await Student.find({classId: classData._id}).lean();
+        const buffer = await exportPdfBuffer({_student, user: req.user, _class: classData}, 'paymentsSheetFilled');
         const fileId = await uploadBufferToDrive(buffer, fileName, paymentSheetsFolderId);
+        backupResults.push({ fileId });
+      }
+    } 
+    res.status(200).json({ message: 'Backup completed', results: backupResults });
+    
+});
+
+
+export const backupClasses = catchAsync(async function (req, res) {
+    const backupResults = [];
+    const Class = getModelByTenant(req.tenantId, 'Class');
+    const _class = await Class.find({isVisible: true}).populate('teacher').lean();
+    
+    if (_class.length) {
+      getAndSetDriveCredentials(req.tenantId)  
+      const edusultFolderId = await findOrCreateFolder('Edusult');
+      const classFolderId = await findOrCreateFolder('class', edusultFolderId);
+      const classesFolderId = await findOrCreateFolder('classes', classFolderId);
+
+      const fileName = `all_classes.pdf`;
+      const buffer = await exportPdfBuffer({ user: req.user, _class}, 'class');
+      const fileId = await uploadBufferToDrive(buffer, fileName, classesFolderId);
+      backupResults.push({ fileId });
+    
+    } 
+    res.status(200).json({ message: 'Backup completed', results: backupResults });
+    
+});
+
+export const backupTeachers = catchAsync(async function (req, res) {
+    const backupResults = [];
+    const Teacher = getModelByTenant(req.tenantId, 'Teacher');
+    const _teacher = await Teacher.find({isVisible: true}).lean()
+
+    if (_teacher.length) {
+      getAndSetDriveCredentials(req.tenantId)  
+      const edusultFolderId = await findOrCreateFolder('Edusult');
+      const teacherFolderId = await findOrCreateFolder('teacher', edusultFolderId);
+      const teachersFolderId = await findOrCreateFolder('teachers', teacherFolderId);
+
+      const fileName = `all_teachers.pdf`;
+      const buffer = await exportPdfBuffer({ user: req.user,_teacher}, 'teacher');
+      const fileId = await uploadBufferToDrive(buffer, fileName, teachersFolderId);
+      backupResults.push({ fileId });
+    
+    } 
+    res.status(200).json({ message: 'Backup completed', results: backupResults });
+});
+
+
+export const backupStudents = catchAsync(async function (req, res) {
+    const backupResults = [];
+    const Class = getModelByTenant(req.tenantId, 'Class');
+    const Student = getModelByTenant(req.tenantId, 'Student');
+    const _class = await Class.find({isVisible: true}).populate('teacher').lean();
+    
+    if (_class.length) {
+      getAndSetDriveCredentials(req.tenantId)  
+      const edusultFolderId = await findOrCreateFolder('Edusult');
+      const studentFolderId = await findOrCreateFolder('student', edusultFolderId);
+      const studentsFolderId = await findOrCreateFolder('students', studentFolderId);
+
+      for (const classData of _class) {
+        const fileName = `${classData.subject}-${classData.grade}-${classData.teacher.name}.pdf`;
+        const _student = await Student.find({classId: classData._id}).lean();
+        const buffer = await exportPdfBuffer({_student, user: req.user, _class: classData}, 'student');
+        const fileId = await uploadBufferToDrive(buffer, fileName, studentsFolderId);
         backupResults.push({ fileId });
       }
     } 

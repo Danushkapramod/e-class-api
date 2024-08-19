@@ -125,3 +125,16 @@ export const getHiddenClasses = catchAsync(async function (req, res) {
     res.status(200).json(classes)
 })
 
+
+
+
+
+
+
+export const getAttendances = catchAsync(async function (req, res,next) {
+    const {id:classId } = req.params
+    if(!classId) return next()
+    const Attendance = getModelByTenant(req.tenantId,'Attendance')
+    const attendances = await Attendance.find({classId})
+    res.status(200).json(attendances)
+})

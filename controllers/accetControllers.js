@@ -48,9 +48,9 @@ export const exportClassCvs = catchAsync(async function (req, res, next) {
 export const exportClassPdf = catchAsync(async function (req, res, next) {
     const Class = getModelByTenant(req.tenantId,'Class')
 
-    const data =  await Class.find().populate('teacher').lean().exec()
+    const _class =  await Class.find().populate('teacher').lean().exec()
     const filename = `assets/pdf/output.pdf`;
-    await exportPdf({data,user:req.user}, filename,'class')
+    await exportPdf({_class,user:req.user}, filename,'class')
         res.download( filename, (err) => {
             if (err) {
                 return next(err);
@@ -70,10 +70,10 @@ export const exportClassPaymentSheetPdf = catchAsync(async function (req, res, n
     const _class = await Class.findById(id).populate('teacher').lean()
 
     const query =  req.body._selected ? {_id:{$in:req.body._selected}}: {}
-    const data = await Student.find({...query,classId:id}).lean()
+    const _student = await Student.find({...query,classId:id}).lean()
 
     const filename = `assets/pdf/output.pdf`;
-    await exportPdf({data,user:req.user,_class}, filename,'paymentsSheet')
+    await exportPdf({_student,user:req.user,_class}, filename,'paymentsSheet')
         res.download( filename, (err) => {
             if (err) {
                 return next(err);
@@ -91,10 +91,10 @@ export const exportClassPaymentsSheetFilledPdf = catchAsync(async function (req,
     const _class = await Class.findById(id).populate('teacher').lean()
 
     const query =  req.body._selected ? {_id:{$in:req.body._selected}}: {}
-    const data = await Student.find({...query,classId:id}).lean()
+    const _student = await Student.find({...query,classId:id}).lean()
 
     const filename = `assets/pdf/output.pdf`;
-    await exportPdf({data,user:req.user,_class}, filename,'paymentsSheetFilled')
+    await exportPdf({_student,user:req.user,_class}, filename,'paymentsSheetFilled')
         res.download( filename, (err) => {
             if (err) {
                 return next(err);
@@ -230,11 +230,13 @@ export const exportStudentPdf = catchAsync(async function (req, res, next) {
     const {id} = req.params
     if(!id) return next(new AppErrror('No class found with that ID', 404)) 
     const Student = getModelByTenant(req.tenantId,'Student')
+    const Class = getModelByTenant(req.tenantId,'Class')
+    const _class = await Class.findById(id).populate('teacher').lean()
 
     const query =  req.body._selected ? {_id:{$in:req.body._selected}}: {}
-    const data = await Student.find({...query,classId:id}).lean();  
+    const _student = await Student.find({...query,classId:id}).lean();  
     const filename = `assets/pdf/students.pdf`;
-    await exportPdf({data}, filename,'student')
+    await exportPdf({_student,user:req.user,_class}, filename,'student')
         res.download( filename, (err) => {
             if (err) {
                 return next(err);
@@ -265,9 +267,9 @@ export const exportTeacherCvs = catchAsync(async function (req, res, next) {
 export const exportTeacherPdf = catchAsync(async function (req, res, next) {
     const Teacher = getModelByTenant(req.tenantId,'Teacher')
 
-    const data = await Teacher.find().lean();  
+    const _teacher = await Teacher.find().lean();  
     const filename = `assets/pdf/teachers.pdf`;
-    await exportPdf({data}, filename,'teacher')
+    await exportPdf({_teacher,user:req.user}, filename,'teacher')
         res.download( filename, (err) => {
             if (err) {
                 return next(err);

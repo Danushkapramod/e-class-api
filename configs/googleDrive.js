@@ -7,9 +7,11 @@ import { google } from "googleapis";
      'http://localhost:5173/app/backups'
   );
   
-  oauth2Client.setCredentials({
-    refresh_token: '1//0gVSM8uQKR8CBCgYIARAAGBASNgF-L9IrgFnpF-d1yldFnFxUK1d9YYkS-X39RHlCxrvEGpPp5xwUc5UfEDd10XlaE3BMcenuGQ'
-  });
+export const setDriveCredentials = async(access_token,refresh_token)=>{
+   oauth2Client.setCredentials({access_token,refresh_token});
+}
+
+ 
 
 
  export const drive = google.drive({ version: 'v3', auth: oauth2Client });

@@ -15,13 +15,11 @@ function formatedstartTime(startTime) {
       .format('hh:mm A');
   }
   
-export function generateHTML(_data,category){
+export function generateHTML(data,category){
 
- const {data,user,_class}  = _data
  let html;   
  if(category === 'class'){
-    const date = formatDate()
-    const rows = data.map(({ subject, teacher, startTime, grade, hall, day },index) => 
+    const rows = data._class?.map(({ subject, teacher, startTime, grade, hall, day },index) => 
              `<tr>
                     <td>${(index+1).toString().padStart(2, '0')}</td>
                     <td class="max-w-28 capitalize">${subject || '------'}</td>
@@ -44,7 +42,6 @@ export function generateHTML(_data,category){
        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9f9f9;
             display: flex;
             justify-content: center;
             margin: 0;
@@ -52,7 +49,6 @@ export function generateHTML(_data,category){
         .container {
             width: 100%;
             max-width: 800px;
-            
             background-color: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
@@ -96,9 +92,7 @@ export function generateHTML(_data,category){
             color:#64748b;
         }
         .section{
-        margin-top: 1rem;
-        padding-left: 1rem /* 16px */;
-        padding-right: 1rem /* 16px */;
+        margin-top: 0.25rem;
       }
       .date{
         text-align: end;
@@ -107,13 +101,15 @@ export function generateHTML(_data,category){
       .title{
         text-align: center;
         font-size: 1.25rem /* 20px */;
-        line-height: 1.75rem /* 28px */;
-        font-weight: 700;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
       }
       .data-1{
         display: flex;
         font-size:14px;
         justify-content: space-between;
+        margin-bottom: 2px;
+        align-items:end;
       }   
       .capitalize{
       text-transform: capitalize;
@@ -127,17 +123,16 @@ export function generateHTML(_data,category){
 <body>
     <div class="container">
      <div class="section">
-        <div class="date"><span>Date :  </span>${date}</div>
-        <div class="title">EduSuite</div>
+        <div class="title">All Classes</div>
         <div class="data-1">
-          <div>All Classes</div>
-          <div>${data.length} results</div>
+          <div >Institute :  ${data.user?.metaData?.instituteName}, ${data.user?.metaData?.city}</div>
+          <div>${data._class?.length} results</div>
         </div>
       </div>
         <table>
             <thead>
                 <tr>
-                    <th class='number'>#</th>
+                    <th>#</th>
                     <th>Subject</th>
                     <th>Teacher</th>
                     <th>Time</th>
@@ -159,23 +154,19 @@ export function generateHTML(_data,category){
 
 
 if(category === 'teacher'){
-    let length = 0;
-    const date = formatDate()
-    const rows = data.map(({ subject, name,phone},index) => 
-            { 
-             length += 1   
-             return `<tr>
+    const rows = data._teacher?.map(({ subject, name,phone},index) => 
+               `<tr>
                     <td>${(index+1).toString().padStart(2, '0')}</td>
                     <td class="max-w-28 capitalize">${name}</td>
                     <td class="max-w-28 capitalize">${subject}</td>
                     <td class="max-w-16">${phone}</td>
                 </tr>
-            `}).join('');
+            `).join('');
 
 
  html = `<html>
 <head>
-    <style>
+     <style>
       @page {
         margin: 1cm; 
       }
@@ -184,7 +175,6 @@ if(category === 'teacher'){
        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9f9f9;
             display: flex;
             justify-content: center;
             margin: 0;
@@ -224,23 +214,18 @@ if(category === 'teacher'){
             max-width: 128px;
             overflow: hidden;
             text-overflow: ellipsis;
- 
         }
         .max-w-16 {
             max-width: 4rem;
             overflow: hidden;
             text-overflow: ellipsis;
-   
         }
         .number{
             width:4px;
             color:#64748b;
-
         }
         .section{
-        margin-top: 1rem;
-        padding-left: 1rem /* 16px */;
-        padding-right: 1rem /* 16px */;
+        margin-top: 0.25rem;
       }
       .date{
         text-align: end;
@@ -249,13 +234,15 @@ if(category === 'teacher'){
       .title{
         text-align: center;
         font-size: 1.25rem /* 20px */;
-        line-height: 1.75rem /* 28px */;
-        font-weight: 700;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
       }
       .data-1{
         display: flex;
         font-size:14px;
         justify-content: space-between;
+        margin-bottom: 2px;
+        align-items:end;
       }   
       .capitalize{
       text-transform: capitalize;
@@ -269,17 +256,16 @@ if(category === 'teacher'){
 <body>
     <div class="container">
      <div class="section">
-        <div class="date"><span>Date :  </span>${date}</div>
-        <div class="title">EduSuite</div>
+      <div class="title">All Teachers</div>
         <div class="data-1">
-          <div>All Teachers</div>
-          <div>${length} results</div>
+          <div>Institute :  ${data.user?.metaData?.instituteName}, ${data.user?.metaData?.city}</div>
+          <div>${data._teacher?.length} results</div>
         </div>
       </div>
         <table>
             <thead>
                 <tr>
-                    <th class='number'>#</th>
+                    <th>#</th>
                     <th>Teacher</th>
                     <th>Subject</th>
                     <th>Phone</th>
@@ -299,8 +285,7 @@ if(category === 'teacher'){
 
 
 if(category === 'student'){
-    const date = formatDate()
-    const rows = data.map(({name,phone,studentId},index) => 
+    const rows = data._student?.map(({name,phone,studentId},index) => 
                `<tr>
                     <td style='width:1px;'>${(index+1).toString().padStart(2, '0')}</td>
                     <td class="max-w-16">${studentId}</td>
@@ -312,8 +297,8 @@ if(category === 'student'){
 
  html = `<html>
 <head>
-    <style>
-     @page {
+     <style>
+      @page {
         margin: 1cm; 
       }
        .pr-6{
@@ -321,7 +306,6 @@ if(category === 'student'){
        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9f9f9;
             display: flex;
             justify-content: center;
             margin: 0;
@@ -361,19 +345,18 @@ if(category === 'student'){
             max-width: 128px;
             overflow: hidden;
             text-overflow: ellipsis;
- 
         }
         .max-w-16 {
             max-width: 4rem;
             overflow: hidden;
             text-overflow: ellipsis;
-   
         }
-       
+        .number{
+            width:4px;
+            color:#64748b;
+        }
         .section{
-        margin-top: 1rem;
-        padding-left: 1rem /* 16px */;
-        padding-right: 1rem /* 16px */;
+        margin-top: 0.25rem;
       }
       .date{
         text-align: end;
@@ -382,13 +365,15 @@ if(category === 'student'){
       .title{
         text-align: center;
         font-size: 1.25rem /* 20px */;
-        line-height: 1.75rem /* 28px */;
-        font-weight: 700;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
       }
       .data-1{
         display: flex;
         font-size:14px;
         justify-content: space-between;
+        margin-bottom: 2px;
+        align-items:end;
       }   
       .capitalize{
       text-transform: capitalize;
@@ -402,11 +387,23 @@ if(category === 'student'){
 <body>
     <div class="container">
      <div class="section">
-        <div class="date"><span>Date :  </span>${date}</div>
-        <div class="title">EduSuite</div>
-        <div class="data-1">
-          <div>Reacher grade 13</div>
-          <div>${data.length} results</div>
+    <div class="title">Students</div>
+      <div class="data-1">
+        <div style=" flex-basis: 30rem;">
+          <div style="display: flex;">
+         <div style="flex-basis: 3.5rem;">Institute</div>
+            <div style="text-transform: capitalize;">: ${data.user?.metaData?.instituteName}, ${data.user?.metaData?.city}</div>
+          </div>
+          <div style="display: flex;">
+            <div style="flex-basis: 3.5rem;">Teacher</div>
+            <div style="text-transform: capitalize";">: ${data._class?.teacher?.name}</div>
+          </div>
+          <div style="display: flex;">
+            <div style="flex-basis: 3.5rem;">Class</div>
+            <div style="text-transform: capitalize;">: ${data._class?.subject} & ${data._class?.grade}</div>
+          </div>
+        </div>
+          <div>${data._student?.length} results</div>
         </div>
       </div>
         <table>
@@ -430,7 +427,7 @@ if(category === 'student'){
 
 
  const rangeList = []
- const length = data.length;
+ const length = data._student?.length;
   function calculateRangeList(){
     const page1 = 68;
     const other = 72;
@@ -454,7 +451,7 @@ if(category === 'student'){
    function setSide1(side){
     const side1Ranges = rangeList.map((range)=>range[side])
      const side1Htm = side1Ranges.map(([start,end])=>
-         data.slice(start,end).map(({ studentId, name },index) => 
+      data._student?.slice(start,end).map(({ studentId, name },index) => 
            `<tr>
               <td>${(start + 1+ index).toString().padStart(2, '0')}</td>
               <td>${studentId}</td>
@@ -471,7 +468,7 @@ if(category === 'student'){
   function setSide2(side){
     const side1Ranges = rangeList.map((range)=>range[side])
      const side1Htm = side1Ranges.map(([start,end])=>
-         data.slice(start,end).map(({ studentId, name,status
+      data._student?.slice(start,end).map(({ studentId, name,status
           },index) => 
            `<tr>
               <td>${(start + 1+ index).toString().padStart(2, '0')}</td>
@@ -542,15 +539,15 @@ if(category === 'paymentsSheet'){
       <div style=" flex-basis: 24rem;">
           <div style="display: flex;">
          <div style="flex-basis: 3.5rem;">Institute</div>
-            <div style="text-transform: capitalize;">: ${user.metaData.instituteName}, ${user.metaData.city}</div>
+            <div style="text-transform: capitalize;">: ${data.user?.metaData?.instituteName}, ${data.user?.metaData?.city}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Teacher</div>
-            <div style="text-transform: capitalize";">: ${_class.teacher.name}</div>
+            <div style="text-transform: capitalize";">: ${data._class?.teacher?.name}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Class</div>
-            <div style="text-transform: capitalize;">: ${_class.subject} & ${_class.grade}</div>
+            <div style="text-transform: capitalize;">: ${data._class?.subject} & ${data._class?.grade}</div>
           </div>
         </div>
         <div style="flex-basis: 10rem; display: flex; gap: 0.25rem; flex-direction: column; justify-content: center;">
@@ -566,12 +563,12 @@ if(category === 'paymentsSheet'){
 
         <div style="flex: 0 0 5rem; display: flex; justify-content: end; 
         flex-direction: column; align-items: flex-end;">
-          <div>${data.length.toString().padStart(2,'0')} Total</div>
+          <div>${data._student?.length.toString().padStart(2,'0')} Total</div>
         </div>
       </div>
     </div>
     <div style="width: 100%; display: flex; margin-top: 0.25rem; align-items:start; justify-content:center;">
-      <table style="width:calc(50% - 1px); ${data.length < 33 && 'width: calc(100% - 2px) !important;'}">
+      <table style="width:calc(50% - 1px); ${data._student?.length < 33 && 'width: calc(100% - 2px) !important;'}">
         <thead>
           <tr>
             <th style="width: 1px;">#</th>
@@ -588,7 +585,7 @@ if(category === 'paymentsSheet'){
           ${side1}
         </tbody>
       </table>
-     ${data.length > 34 ? `<table style="width:calc(50% - 1px);">
+     ${data._student?.length > 34 ? `<table style="width:calc(50% - 1px);">
         <thead>
           <tr>
             <th style="width: 1px;">#</th>
@@ -676,26 +673,26 @@ if(category === 'paymentsSheetFilled'){
       <div style=" flex-basis: 24rem;">
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Institute</div>
-            <div style="text-transform: capitalize;">: ${user.metaData.instituteName}, ${user.metaData.city}</div>
+            <div style="text-transform: capitalize;">: ${data.user?.metaData?.instituteName}, ${data.user?.metaData?.city}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Teacher</div>
-            <div style="text-transform: capitalize";">: ${_class.teacher.name}</div>
+            <div style="text-transform: capitalize";">: ${data._class?.teacher?.name}</div>
           </div>
           <div style="display: flex;">
             <div style="flex-basis: 3.5rem;">Class</div>
-            <div style="text-transform: capitalize;">: ${_class.subject} & ${_class.grade}</div>
+            <div style="text-transform: capitalize;">: ${data._class?.subject} & ${data._class?.grade}</div>
           </div>
         </div>
   
         <div style="flex: 0 0 5rem; display: flex; justify-content: end; 
         flex-direction: column; align-items: flex-end;">
-          <div>${data.length.toString().padStart(2,'0')} Total</div>
+          <div>${data._student?.length.toString().padStart(2,'0')} Total</div>
         </div>
       </div>
     </div>
     <div style="width: 100%; display: flex; margin-top: 0.25rem; align-items:start; justify-content:center;">
-      <table style="width:calc(50% - 1px); ${data.length < 33 && 'width: calc(100% - 2px) !important;'}">
+      <table style="width:calc(50% - 1px); ${data._student?.length < 33 && 'width: calc(100% - 2px) !important;'}">
         <thead>
           <tr>
             <th style="width: 1px;">#</th>
@@ -710,7 +707,7 @@ if(category === 'paymentsSheetFilled'){
           ${side1}
         </tbody>
       </table>
-     ${data.length > 34 ? `<table style="width:calc(50% - 1px);">
+     ${data._student?.length > 34 ? `<table style="width:calc(50% - 1px);">
         <thead>
           <tr>
             <th style="width: 1px;">#</th>
@@ -736,7 +733,7 @@ if(category === 'footer'){
   return `<div style="font-size:14px; display: flex; align-items: center;
             justify-content: space-between; padding:0 1cm; width:100%;">
             <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
-             <div style="font-size:12px;"> ${user.metaData.instituteName} ${user.metaData.city}</div>
+             <div style="font-size:12px;"> ${data.user?.metaData?.instituteName} ${data.user?.metaData?.city}</div>
             <div>${formatDate()}</div>
            </div>`
 }

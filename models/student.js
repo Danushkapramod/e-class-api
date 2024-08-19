@@ -10,10 +10,14 @@ export const studentShema = new mongoose.Schema({
     type: String,
     default: 'unpaid'
   },
+  attendances:[{
+    date:Date,
+    isPresent:Boolean
+  }],
   statusChangedAt: Date,
   createdAt: { type: Date, default: Date.now },
   isVisible:{type:Boolean,default:true},
-  hiddenAt:  Date ,
+  hiddenAt:  Date 
 });
 
 

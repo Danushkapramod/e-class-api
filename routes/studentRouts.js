@@ -18,4 +18,7 @@ router.route('/total').get(protect,studentsTotalAll)
 router.route('/total/:id').get(protect,studentsTotal)
 router.route('/:id').get(protect,getStudents).patch(protect,updateStudent).delete(protect,deleteStudent)
 
+
+
+
 export default router

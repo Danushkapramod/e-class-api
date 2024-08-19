@@ -161,7 +161,6 @@ export const getHiddenStudents = catchAsync(async function (req, res) {
 
 export const hideStudent = catchAsync(async function (req, res, next) {
     const {data,idList} = req.body
-    
     if(!data || !idList) return next()
     const Student = getModelByTenant(req.tenantId,'Student')
     await Student.updateMany({_id:{$in:idList}},data)
