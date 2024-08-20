@@ -2,6 +2,7 @@ import express from 'express'
 
 import {
     classesTotal,
+    createAttendance,
     createClass,
     deleteClass,
     deleteManyClasses,
@@ -25,6 +26,7 @@ router.route('/deleteMany').post(protect,deleteManyClasses)
 router.patch('/hide',protect,hideClass)
 router.route('/:id').get(protect,getClassById).patch(protect,uploadBuffer,updateClass).delete(protect,deleteClass)
 
+router.route('/attendance').post(protect,createAttendance)
 router.route('/attendance/:id').get(protect,getAttendances)
 
 export default router

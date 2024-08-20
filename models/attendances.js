@@ -11,7 +11,7 @@ import mongoose from 'mongoose'
     },
     date: {
         type: Date,
-        required: true
+        default:Date.now
       },
     isPresent: {
         type: Boolean,

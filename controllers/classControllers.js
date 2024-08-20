@@ -138,3 +138,11 @@ export const getAttendances = catchAsync(async function (req, res,next) {
     const attendances = await Attendance.find({classId})
     res.status(200).json(attendances)
 })
+
+
+export const createAttendance = catchAsync(async function (req, res,next) {
+    if(!req.body) return next()     
+    const Attendance = getModelByTenant(req.tenantId,'Attendance')
+    const attendance = await Attendance.create(req.body)
+    res.status(201).json(attendance)
+})
