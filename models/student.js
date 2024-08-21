@@ -3,17 +3,13 @@ import mongoose from 'mongoose';
 
 export const studentShema = new mongoose.Schema({
   studentId: { type: String, unique: true },
-  classId:{type:mongoose.SchemaTypes.ObjectId,require:true},
+  classId:[{type:String,require:true}],
   name: { type: String, lowercase: true },
   phone: { type: String, unique:false },
   status: {
     type: String,
     default: 'unpaid'
   },
-  attendances:[{
-    date:Date,
-    isPresent:Boolean
-  }],
   statusChangedAt: Date,
   createdAt: { type: Date, default: Date.now },
   isVisible:{type:Boolean,default:true},
