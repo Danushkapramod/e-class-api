@@ -76,11 +76,13 @@ export const getStudents = catchAsync(async function (req, res,next) {
     if(!id) return next(new AppErrror('No class found with that ID', 404))
         
     const Student = getModelByTenant(req.tenantId,'Student')
-    const apiFeatures = new ApiFeatures(req,Student.find({classId:id,isVisible:true})).searching().filtering().pagination()
+    const apiFeatures = new ApiFeatures(req,Student.find({ classId: { $in: [id] },isVisible: true })).searching().filtering().pagination()
 
     const students = await apiFeatures.query
     res.status(200).json( students)
 })
+
+
 export const getAllStudents = catchAsync(async function (req, res,next) {
 
     const Student = getModelByTenant(req.tenantId,'Student')
@@ -137,6 +139,18 @@ export const updateSelectedStudents = catchAsync(async function (req, res,next) 
     })
 })
 
+export const addClassForSelectedStudents= catchAsync(async function (req, res,next) {
+  
+    
+    const {studentIds,newData} = req.body
+      console.log(studentIds,newData);
+    if (!studentIds || !newData) {
+        return next(new AppErrror('No Student found', 404))
+    }
+    const Student = getModelByTenant(req.tenantId,'Student')
+    await Student.updateMany({_id:{$in:studentIds}}, { $push: { classId: { $each: newData } } } )
+    res.status(200).json('succes')
+})
 
 export const studentsTotal = catchAsync(async function (req, res) {
     const {id} = req.params
