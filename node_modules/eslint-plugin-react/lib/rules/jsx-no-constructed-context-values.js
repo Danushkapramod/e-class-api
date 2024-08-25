@@ -6,7 +6,9 @@
 
 'use strict';
 
+const Components = require('../util/Components');
 const docsUrl = require('../util/docsUrl');
+const getScope = require('../util/eslint').getScope;
 const report = require('../util/report');
 
 // ------------------------------------------------------------------------------
@@ -128,18 +130,21 @@ const messages = {
   defaultMsgFunc: 'The {{type}} passed as the value prop to the Context provider (at line {{nodeLine}}) changes every render. To fix this consider wrapping it in a useCallback hook.',
 };
 
+/** @type {import('eslint').Rule.RuleModule} */
 module.exports = {
   meta: {
     docs: {
-      description: 'Prevents JSX context provider values from taking values that will cause needless rerenders.',
+      description: 'Disallows JSX context provider values from taking values that will cause needless rerenders',
       category: 'Best Practices',
       recommended: false,
       url: docsUrl('jsx-no-constructed-context-values'),
     },
     messages,
+    schema: false,
   },
 
-  create(context) {
+  // eslint-disable-next-line arrow-body-style
+  create: Components.detect((context, components, utils) => {
     return {
       JSXOpeningElement(node) {
         const openingElementName = node.name;
@@ -176,11 +181,15 @@ module.exports = {
         }
 
         const valueExpression = valueNode.expression;
-        const invocationScope = context.getScope();
+        const invocationScope = getScope(context, node);
 
         // Check if the value prop is a construction
         const constructInfo = isConstruction(valueExpression, invocationScope);
         if (constructInfo == null) {
+          return;
+        }
+
+        if (!utils.getParentComponent(node)) {
           return;
         }
 
@@ -214,5 +223,5 @@ module.exports = {
         });
       },
     };
-  },
+  }),
 };
