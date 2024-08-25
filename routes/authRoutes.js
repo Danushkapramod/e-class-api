@@ -34,3 +34,6 @@ router.get('/me', protect, fetchAuthData)
 router.route('/app-settings').get( protect, getAppSetings).patch(protect,updateAppSetings)
 router.post('/default-statusOptions',protect,statusOptionsDefault)
 export default router
+
+
+
