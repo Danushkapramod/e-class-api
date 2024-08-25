@@ -19,7 +19,7 @@ import { getAppSetings, statusOptionsDefault, updateAppSetings } from '../contro
 
 const router = express.Router()
 
-router.post('/signup', signup)
+router.post('/signup', signup ) 
 router.get('/verify-email',verifyEmail)
 router.post('/login', login)
 router.post('/reset-password',resetPassword)
