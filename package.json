@@ -47,7 +47,7 @@
         "puppeteer": "^22.13.0",
         "qrcode": "^1.5.3",
         "react-hot-toast": "^2.4.1",
-        "sharp": "^0.33.4",
+        "sharp": "^0.33.5",
         "uuid": "^10.0.0",
         "validator": "^13.12.0",
         "winston": "^3.13.0"
