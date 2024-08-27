@@ -343,7 +343,7 @@ function isWide(x) {
 var _isNarrowWidth = (codePoint) => !(isFullWidth(codePoint) || isWide(codePoint));
 
 // src/utils/get-string-width.js
-var notAsciiRegex = /[^\x20-\x7F]/;
+var notAsciiRegex = /[^\x20-\x7F]/u;
 function getStringWidth(text) {
   if (!text) {
     return 0;
@@ -575,7 +575,7 @@ function stripTrailingHardlineFromDoc(doc) {
     case DOC_TYPE_ARRAY:
       return stripTrailingHardlineFromParts(doc);
     case DOC_TYPE_STRING:
-      return doc.replace(/[\n\r]*$/, "");
+      return doc.replace(/[\n\r]*$/u, "");
     case DOC_TYPE_ALIGN:
     case DOC_TYPE_CURSOR:
     case DOC_TYPE_TRIM:

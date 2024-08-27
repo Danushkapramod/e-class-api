@@ -146,7 +146,9 @@ export const addClassForSelectedStudents= catchAsync(async function (req, res,ne
         return next(new AppErrror('No Student found', 404))
     }
     const Student = getModelByTenant(req.tenantId,'Student')
+
     await Student.updateMany({_id:{$in:studentIds}}, { $addToSet: { class: { $each: newData } } } )
+
     res.status(200).json('succes')
 })
 

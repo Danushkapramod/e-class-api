@@ -121,7 +121,6 @@ export const verifyEmail = catchAsync(async function (req, res,next) {
 
 export const login = catchAsync(async function (req, res, next) {
     const { email, password } = req.body
-
     if (!email || !password) {
         return next(new AppError('Please provide email and password', 400))
     }
@@ -133,7 +132,10 @@ export const login = catchAsync(async function (req, res, next) {
     const refresh_token =  createToken({id:user._id},'refresh')
 
     await Token.create({user_id:user._id,token:refresh_token})
-    
+
+    const userResponse = { ...user._doc }; 
+    delete userResponse.password; 
+
     const cokiesOptio = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
         httpOnly:true,
@@ -143,15 +145,11 @@ export const login = catchAsync(async function (req, res, next) {
     res.cookie('access_token', access_token, cokiesOptio);
     res.cookie('refresh_token', refresh_token, cokiesOptio);
 
-    res.status(200).json({
-        access_token,
-        refresh_token,
-        user:{...user,password:undefined},
-    })  
+    res.status(200).json({user:userResponse})  
     signInLogger.info({user:user.email, message:'Sign-in successful'})
 })
 
-
+  
 export const logOut = catchAsync(async function (req, res) {
     await Token.findOneAndDelete({token:req.cookies.refresh_token})
     res.clearCookie('access_token', { httpOnly: true })
