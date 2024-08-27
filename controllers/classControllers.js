@@ -146,3 +146,58 @@ export const createAttendance = catchAsync(async function (req, res,next) {
     const attendance = await Attendance.create(req.body)
     res.status(201).json(attendance)
 })
+
+
+function getCurrentDay() {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const istOffset = 5.5 * 60 * 60000;
+    const istTime = new Date(utc + istOffset);
+    
+    const dayNumber = istTime.getDay();
+    return days[dayNumber];
+}
+
+
+export const confirmAttendance = catchAsync(async function (req, res, next) {
+    const { classId, studentId } = req.query;
+
+    if (!classId || !studentId) {
+        return next(new AppError('Missing classId or studentId', 400));
+    }
+    const Student = getModelByTenant(req.tenantId, 'Student');
+    const Attendance = getModelByTenant(req.tenantId, 'Attendance');
+    const Class = getModelByTenant(req.tenantId, 'Class'); 
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+        return next(new AppError('Invalid QR or student ID', 400));
+    }
+
+    const _class = await Class.findOne({ _id: classId});
+    if (!_class) {
+        return next(new AppError('No matching class found', 400));
+    }
+
+    const studentClass = student.class.find((classItem)=>classItem.classId)       
+    if (!studentClass) {
+        return next(new AppError('No matching class found for this student', 400));
+    }
+    const isToday = _class.day === getCurrentDay();
+    if(!isToday) return next(new AppError('Class day does not match today\'s date', 400));
+
+    const today = new Date();
+    const todayDate = today.toISOString().slice(0, 10); // Format: 'YYYY-MM-DD'
+    const alreadyMarked = await Attendance.exists({
+        classId, studentId, date: { $gte: new Date(todayDate + 'T00:00:00Z')}
+    });
+
+    if (alreadyMarked) {
+        return next(new AppError('Attendance already marked for today', 400));
+    }
+    await Attendance.create({ classId, studentId, isPresent: true });
+
+    res.status(201).json(true);
+});
