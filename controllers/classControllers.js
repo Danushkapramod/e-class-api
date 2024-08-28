@@ -193,7 +193,6 @@ export const confirmAttendance = catchAsync(async function (req, res, next) {
     const alreadyMarked = await Attendance.exists({
         classId, studentId, date: { $gte: new Date(todayDate + 'T00:00:00Z')}
     });
-
     if (alreadyMarked) {
         return next(new AppError('Attendance already marked for today', 400));
     }
