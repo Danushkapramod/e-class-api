@@ -3,6 +3,7 @@ import express from 'express'
 import {
     classesTotal,
     confirmAttendance,
+    confirmPayment,
     createAttendance,
     createClass,
     deleteClass,
@@ -27,6 +28,7 @@ router.route('/deleteMany').post(protect,deleteManyClasses)
 router.patch('/hide',protect,hideClass)
 
 router.get('/confirmAttendance',protect,confirmAttendance)
+router.get('/confirmPayment',protect,confirmPayment)
 
 router.route('/attendance').post(protect,createAttendance)
 router.route('/attendance/:id').get(protect,getAttendances)

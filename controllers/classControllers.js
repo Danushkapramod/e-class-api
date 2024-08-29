@@ -127,10 +127,6 @@ export const getHiddenClasses = catchAsync(async function (req, res) {
 
 
 
-
-
-
-
 export const getAttendances = catchAsync(async function (req, res,next) {
     const {id:classId } = req.params
     if(!classId) return next()
@@ -197,6 +193,47 @@ export const confirmAttendance = catchAsync(async function (req, res, next) {
         return next(new AppError('Attendance already marked for today', 400));
     }
     await Attendance.create({ classId, studentId, isPresent: true });
+
+    res.status(201).json(true);
+});
+
+
+
+export const confirmPayment = catchAsync(async function (req, res, next) {
+    const { classId, studentId } = req.query;
+
+    if (!classId || !studentId) {
+        return next(new AppError('Missing classId or studentId', 400));
+    }
+    const Student = getModelByTenant(req.tenantId, 'Student');
+    const Attendance = getModelByTenant(req.tenantId, 'Attendance');
+    const Class = getModelByTenant(req.tenantId, 'Class'); 
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+        return next(new AppError('Invalid QR or student ID', 400));
+    }
+    const _class = await Class.findOne({ _id: classId});
+    if (!_class) {
+        return next(new AppError('No matching class found', 400));
+    }
+    const studentClass = student.class.find((classItem)=>classItem.classId)       
+    if (!studentClass) {
+        return next(new AppError('No matching class found for this student', 400));
+    }
+    const isToday = _class.day === getCurrentDay();
+    if(!isToday) return next(new AppError('Class day does not match today\'s date', 400));
+
+    const alreadyMarked = await Attendance.exists({ classId, studentId, status: 'paid' });
+    if (alreadyMarked) {
+        return next(new AppError('Attendance already marked for today', 400));
+    }
+    student.class = student.class.map((classData)=>{
+        if(classData.classId === classId){
+         return {classId, status:'paid'}
+        }return classData  
+    })
+    await student.save()
 
     res.status(201).json(true);
 });
