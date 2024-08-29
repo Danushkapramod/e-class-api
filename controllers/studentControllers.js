@@ -67,7 +67,6 @@ async function sendQrGmail({email,name,file}) {
          }
      }
     } 
-     
     res.status(201).json(student)  
 })
 
@@ -80,6 +79,16 @@ export const getStudents = catchAsync(async function (req, res,next) {
 
     const students = await apiFeatures.query
     res.status(200).json( students)
+})
+
+export const getOneStudent = catchAsync(async function (req, res,next) {
+    const {studentId} = req.params
+    if(!studentId) return next(new AppErrror('No student found with that ID', 404));
+        
+    const Student = getModelByTenant(req.tenantId,'Student');
+    const student = await Student.findById(studentId);
+
+    res.status(200).json(student)
 })
 
 
