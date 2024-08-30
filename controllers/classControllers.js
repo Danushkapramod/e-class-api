@@ -177,7 +177,7 @@ export const confirmAttendance = catchAsync(async function (req, res, next) {
         return next(new AppError('No matching class found', 400));
     }
 
-    const studentClass = student.class.find((classItem)=>classItem.classId)       
+    const studentClass = student.class.find((classItem)=>classItem.classId === classId)       
     if (!studentClass) {
         return next(new AppError('No matching class found for this student', 400));
     }
@@ -206,7 +206,6 @@ export const confirmPayment = catchAsync(async function (req, res, next) {
         return next(new AppError('Missing classId or studentId', 400));
     }
     const Student = getModelByTenant(req.tenantId, 'Student');
-    const Attendance = getModelByTenant(req.tenantId, 'Attendance');
     const Class = getModelByTenant(req.tenantId, 'Class'); 
 
     const student = await Student.findById(studentId);
@@ -224,12 +223,11 @@ export const confirmPayment = catchAsync(async function (req, res, next) {
     const isToday = _class.day === getCurrentDay();
     if(!isToday) return next(new AppError('Class day does not match today\'s date', 400));
 
-    const alreadyMarked = await Attendance.exists({ classId, studentId, status: 'paid' });
-    if (alreadyMarked) {
-        return next(new AppError('Attendance already marked for today', 400));
-    }
     student.class = student.class.map((classData)=>{
         if(classData.classId === classId){
+            if(classData.status === 'paid'){
+                return next(new AppError('Payment already marked for this montht', 400));
+            }
          return {classId, status:'paid'}
         }return classData  
     })

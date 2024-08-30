@@ -306,7 +306,7 @@ export const emailChangePin = catchAsync(async function (req, res, next) {
     user.pendingEmail = new_email
     await user.save();
 
-    new Email({name:user.name,pin:resetPin,email:user.email}).emailChangePin()
+    new Email({name:user.name,pin:resetPin,email:new_email}).emailChangePin()
     
     res.status(200).json('Email change pin sent.');
 });
@@ -341,14 +341,17 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     user.applyPendingEmailChange()
     await user.save();
 
-    const token =  createToken(user);
-    res.cookie('access_token', token, {
+    const access_token =  createToken({id:user._id},'access')
+    const refresh_token =  createToken({id:user._id},'refresh')
+
+    const cokiesOptio = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: true,
+        httpOnly:true,
+        secure:true,
         sameSite: 'None',
-        maxAge: 24 * 60 * 60 * 1000 
-    });
+    }
+    res.cookie('access_token', access_token, cokiesOptio);
+    res.cookie('refresh_token', refresh_token, cokiesOptio);
 
     res.status(200).json('Email changed successfully.' );
 });
