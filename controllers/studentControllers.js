@@ -188,3 +188,14 @@ export const hideStudent = catchAsync(async function (req, res, next) {
     res.status(200).json()
 })
 
+export const updateStatus = catchAsync(async function (req, res, next) {
+    const { studentIds, classId, newData } = req.body
+    if (!studentIds || !classId || !newData) return next(new Error('Missing required fields'))
+
+    const Student = getModelByTenant(req.tenantId, 'Student')
+    await Student.updateMany(
+        { _id: { $in: studentIds }, 'class.classId': classId },
+        { $set: { 'class.$.status': newData.status } }
+    )
+    res.status(200).json('success')
+})
