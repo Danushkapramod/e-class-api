@@ -12,6 +12,20 @@ export const getAllTeachers = catchAsync(async function (req, res) {
     const teachers = await apiFeatures.query;
     res.status(200).json( teachers )
 })
+export const getTeacherClasses = catchAsync(async function (req, res, next) {
+    const { id } = req.params;
+    if (!id) return next(new AppErrror('Missing required fields'), 404)
+
+    const Teacher = getModelByTenant(req.tenantId,'Teacher')
+    const Class = getModelByTenant(req.tenantId,'Class')
+
+    const teacher= await Teacher.find({isVisible:true})
+    if(!teacher) return next(new AppErrror('Teacher not found', 404));
+    
+    const classes = await Class.find({ teacher: id, isVisible: true });
+    res.status(200).json( classes)
+})
+
 export const getHiddenTeachers = catchAsync(async function (req, res) {
     const Teacher = getModelByTenant(req.tenantId,'Teacher')
     const teachers = await Teacher.find({isVisible:false})

@@ -6,6 +6,7 @@ import {
     getAllTeachers,
     getHiddenTeachers,
     getTeacherById,
+    getTeacherClasses,
     hideTeacher,
     teacherTotal,
     updateTeacher,
@@ -20,6 +21,7 @@ router.get('/total',protect,teacherTotal)
 router.route('/deleteMany').post(protect,deleteManyTachers)
 router.get('/hidden',protect,getHiddenTeachers)
 router.patch('/hide',protect,hideTeacher)
+router.route('/classes/:id').get(protect,getTeacherClasses)
 router
     .route('/:id')
     .get(getTeacherById)
