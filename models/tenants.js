@@ -1,41 +1,46 @@
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 import {  mongodb } from '../configs/database.js'
+
 
 const authSchema = new mongoose.Schema({
     name: {
-        required: true,
         type: String,
         maxlength: 255,
     },
     email: {
         type: String,
-        required: true,
-        unique: true,
         maxlength: 255,
         lowercase: true,
         validate: validator.isEmail,
     },
+    loginId: {
+        type: String,
+        unique: true
+    },
     phone:String,
     avatar: String,
+    rootUserId: {
+        type: Schema.Types.ObjectId,
+        unique: true,
+    },
     role: {
         type: String,
-        enum: ['admin', 'user'],
-        default: 'user',
+        required: true,
+        enum: ['rootAdmin', 'subAdmin'],
+        default: 'rootAdmin',
     },
     password: {
         type: String,
-         required: true,
-         minlength: 6,
+        required: true,
+        minlength: 6,
         select: false,
     },
     email_verified:{
         type:Boolean,
-        default:false,
     },
- 
     active: {
         type: Boolean,
         default: true,
@@ -51,6 +56,7 @@ const authSchema = new mongoose.Schema({
         address:String,
         city:String
     },
+    permissions: [String],
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -58,15 +64,7 @@ const authSchema = new mongoose.Schema({
     emailResetExpires: Date,
     emailVerifyToken: String,
     emailVerifyExpires: Date,
-    refreshToken: String
-       
-})
-
-
-authSchema.pre('save', function (next){
-    if(!this.isNew) return next();
-    this.email_verified = false;    
-    next()
+    refreshToken: String      
 })
 
 authSchema.pre('save', async function (next) {
@@ -122,6 +120,7 @@ authSchema.methods.compairePin = function (pin) {
 
 authSchema.methods.createEmailVerifyToken = function () {
     const token = crypto.randomBytes(32).toString('hex')
+    this.email_verified = false;   
     this.emailVerifyToken = token;
     this.emailVerifyExpires = Date.now() + 24 * 60 * 60 * 1000
     return token

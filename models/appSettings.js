@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { type } from 'os';
 
 const statusOptionsDefault = [
     { option: 'paid', color: '#22c55e' },
@@ -6,6 +7,16 @@ const statusOptionsDefault = [
     { option: 'half', color: '#0ea5e9' },
     { option: 'free', color: '#64748b' }
 ]
+
+const permisions = {
+    default: ['Create Student', 'Update Student',
+             'Confirm Attendence', 'Confirm Payment'],
+
+    all: ['Create', 'Update','Delete','Create Class' ,'Create Student', 
+        'Create Teacher','Update Student', 'Confirm Attendence', 'Confirm Payment',
+    ]         
+}
+
 export const appSettingsSchema = new mongoose.Schema({
     students: {
         statusOptions: {
@@ -16,7 +27,16 @@ export const appSettingsSchema = new mongoose.Schema({
                 },
                 color: String
             }],
-            default:statusOptionsDefault
+            default: statusOptionsDefault
+        }
+    },
+    user: {
+        permisions: {
+            type: {
+             default : [String],
+             all: [String]   
+            },
+            default: permisions
         }
     }
 });

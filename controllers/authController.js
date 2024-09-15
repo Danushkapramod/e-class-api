@@ -82,10 +82,13 @@ export const updateUserAvatar = catchAsync(async function (req, res, next) {
 })
 
 
-export const signup = catchAsync(async function (req, res) {
- 
-    const user = await Auth.create({...req.body})
-    console.log(user);
+export const signup = catchAsync(async function (req, res, next) {
+    if (!req.body) return next(new AppError('Missing required fields', 404))
+
+    const isTaken = await Auth.findOne({email: req.body?.email })
+    if (isTaken) return next(new AppError('Email is already taken.', 400));
+
+    const user = await Auth.create(req.body)
     const token = user.createEmailVerifyToken()
     await user.save();
 
@@ -96,6 +99,29 @@ export const signup = catchAsync(async function (req, res) {
         status: 'succes',
         body: {user},
     })
+})
+
+export const createAdmin = catchAsync(async function (req, res, next) {
+    const isTaken = await Auth.findOne({loginId: req.body?.loginId})
+    if (isTaken) return next(new AppError('Username is already taken.', 400));
+
+    const user = await Auth.create({...req.body, rootUserId: req.tenantId});
+    res.status(201).json({
+        status: 'succes',
+        body: {user},
+    })
+})
+
+export const updateAdmin = catchAsync(async function (req, res, next) {
+    const { id } = req.params;
+    if (!id || !req.body) return next(new AppError('Missing required fields', 404));
+    await Auth.findByIdAndUpdate(id, req.body);
+    res.status(201).json('success')
+})
+
+export const getAdmins = catchAsync(async function (req, res) {
+    const users = await Auth.find({ rootUserId: req.user._id });
+    res.status(201).json(users)
 })
 
 export const verifyEmail = catchAsync(async function (req, res,next) {

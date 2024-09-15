@@ -2,14 +2,17 @@ import express from 'express'
 import {
     changeEmail,
     changePassword,
+    createAdmin,
     emailChangePin,
     fetchAuthData,
     forgotPassword,
+    getAdmins,
     login,
     logOut,
     protect,
     resetPassword,
     signup,
+    updateAdmin,
     updateAuther,
     updateUserAvatar,
     verifyEmail,
@@ -20,7 +23,10 @@ import { getAppSetings, statusOptionsDefault, updateAppSetings } from '../contro
 const router = express.Router()
 
 router.post('/signup', signup ) 
+router.post('/admin', protect, createAdmin ) 
+router.patch('/admin/:id', protect, updateAdmin ) 
 router.get('/verify-email',verifyEmail)
+router.get('/admins', protect, getAdmins)
 router.post('/login', login)
 router.post('/reset-password',resetPassword)
 router.post('/forgot-password',forgotPassword)
