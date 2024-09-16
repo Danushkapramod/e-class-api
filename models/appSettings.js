@@ -9,7 +9,7 @@ const statusOptionsDefault = [
 ]
 
 const permisions = {
-    default: ['Create Student', 'Update Student',
+    default: ['Create Student', 'Update Student','Delete Student',
              'Confirm Attendence', 'Confirm Payment'],
 
     all: ['Create', 'Update','Delete','Create Class' ,'Create Student', 

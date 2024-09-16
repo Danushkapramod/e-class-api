@@ -44,7 +44,7 @@ export const getTeacherById = catchAsync(async function (req, res, next) {
 export const updateTeacher = catchAsync(async function (req, res, next) {
     if(req.file && req.file.buffer){
         const resizeBuffer = await resizeImage({buffer:req.file.buffer,width:256,height:256})
-        const fileName = `assets/images/teacher-avatars/teacher-${req.user._id}-${Date.now()}.webp`
+        const fileName = `assets/images/teacher-avatars/teacher-${req.tenantId}-${Date.now()}.webp`
         const result = await updateBuffer({fileUrl:req.body.oldAvatar,fileName,buffer:resizeBuffer})
 
         if(result){
@@ -117,7 +117,7 @@ export const deleteManyTachers = catchAsync(async function (req, res,next) {
 export const createTeacher = catchAsync(async function (req, res) {
     if(req.file && req.file.buffer){
         const resizedBuffer = await resizeImage({buffer:req.file.buffer,height:256,width:256})
-        const fileName = `assets/images/teacher-avatars/teacher-${req.user._id}-${Date.now()}.webp`
+        const fileName = `assets/images/teacher-avatars/teacher-${req.tenantId}-${Date.now()}.webp`
         const result =  await uploadBuffer({fileName,buffer:resizedBuffer})
         
          if(result){

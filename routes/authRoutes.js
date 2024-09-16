@@ -3,10 +3,13 @@ import {
     changeEmail,
     changePassword,
     createAdmin,
+    deleteAdmin,
     emailChangePin,
     fetchAuthData,
     forgotPassword,
     getAdmins,
+    getHiddenAdmins,
+    hideAdmin,
     login,
     logOut,
     protect,
@@ -28,6 +31,9 @@ router.patch('/admin/:id', protect, updateAdmin )
 router.get('/verify-email',verifyEmail)
 router.get('/admins', protect, getAdmins)
 router.post('/login', login)
+router.get('/admins/hidden',protect,getHiddenAdmins)
+router.patch('/admins/hide',protect,hideAdmin)
+router.delete('/admins/:id',protect,deleteAdmin)
 router.post('/reset-password',resetPassword)
 router.post('/forgot-password',forgotPassword)
 router.post('/change-password',protect,changePassword)

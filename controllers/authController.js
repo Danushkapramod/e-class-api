@@ -145,14 +145,57 @@ export const verifyEmail = catchAsync(async function (req, res,next) {
 })
 
 
+// export const login = catchAsync(async function (req, res, next) {
+//     const { email, password } = req.body
+//     if (!email || !password) {
+//         return next(new AppError('Please provide email and password', 400))
+//     }
+//     const user = await Auth.findOne({ email,email_verified:true }).select('+password')
+//     if (!user || !(await user.compairPassword(password, user.password))) {
+//         return next(new AppError('Incorrect email or password', 401))
+//     }
+//     const access_token =  createToken({id:user._id},'access')
+//     const refresh_token =  createToken({id:user._id},'refresh')
+
+//     await Token.create({user_id:user._id,token:refresh_token})
+
+//     const userResponse = { ...user._doc }; 
+//     delete userResponse.password; 
+
+//     const cokiesOptio = {
+//         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+//         httpOnly:true,
+//         secure:true,
+//         sameSite: 'None',
+//     }
+//     res.cookie('access_token', access_token, cokiesOptio);
+//     res.cookie('refresh_token', refresh_token, cokiesOptio);
+
+//     res.status(200).json({user:userResponse})  
+//     signInLogger.info({user:user.email, message:'Sign-in successful'})
+// })
+
+
+
 export const login = catchAsync(async function (req, res, next) {
-    const { email, password } = req.body
-    if (!email || !password) {
-        return next(new AppError('Please provide email and password', 400))
-    }
-    const user = await Auth.findOne({ email,email_verified:true }).select('+password')
-    if (!user || !(await user.compairPassword(password, user.password))) {
-        return next(new AppError('Incorrect email or password', 401))
+    const { email, password, username, loginType } = req.body
+    let user;
+    if(loginType === 'rootAdmin'){
+       if (!email || !password) {
+         return next(new AppError('Please provide email and password', 400))
+       }
+         user = await Auth.findOne({ email,email_verified:true }).select('+password')
+       if (!user || !(await user.compairPassword(password, user.password))) {
+         return next(new AppError('Incorrect email or password', 401))
+       }
+    }else if(loginType === 'subAdmin') {
+        if (!username || !password) {
+            return next(new AppError('Please provide Username and password', 400))
+        }
+         user = await Auth.findOne({ loginId: username }).select('+password')
+        if (!user || !(await user.compairPassword(password, user.password))) {
+          return next(new AppError('Incorrect Username or password', 401))
+        }
     }
     const access_token =  createToken({id:user._id},'access')
     const refresh_token =  createToken({id:user._id},'refresh')
@@ -218,8 +261,8 @@ export const protect = catchAsync(async function (req, res, next) {
         res.cookie('access_token', access_token, cookieOptions)
            .status(200).json()
            return 
-    
     }
+
     const freshUser = await Auth.findById(decoded.id)
     if (!freshUser) {
         return next(
@@ -232,7 +275,10 @@ export const protect = catchAsync(async function (req, res, next) {
         )
     }
     req.user = freshUser
-    req.tenantId = freshUser._id
+    if(freshUser.role === 'subAdmin') req.tenantId = freshUser.rootUserId
+    else if(freshUser.role === 'rootAdmin') req.tenantId = freshUser._id
+    console.log(freshUser.role);
+    
     next()
 })
 
@@ -382,8 +428,24 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     res.status(200).json('Email changed successfully.' );
 });
 
+export const hideAdmin = catchAsync(async function (req, res, next) {
+    const {data,id } = req.body
+    if(!data || !id) return next()
+    await Auth.findByIdAndUpdate(id, data)
+    res.status(200).json('success')
+})
 
+export const getHiddenAdmins = catchAsync(async function (req, res) {
+    const admins = await Auth.find({isVisible:false, rootUserId: req.user._id})
+    res.status(200).json(admins)
+})
 
+export const deleteAdmin = catchAsync(async function (req, res,  next) {
+    const { id } = req.params;
+    if (!id) return next(new AppError('Missing required fields', 404));
+    await Auth.findByIdAndDelete(id)
+    res.status(200).json('success')
+})
 
 
 

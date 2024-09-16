@@ -40,7 +40,7 @@ export const getClassById = catchAsync(async function (req, res, next) {
 export const updateClass = catchAsync(async function (req, res, next) {
     if(req.file && req.file.buffer){
       const resizedBuffer = await resizeImage({buffer:req.file.buffer,height:256,width:256})
-      const fileName = `assets/images/class-avatars/class-${req.user._id}-${Date.now()}.webp`
+      const fileName = `assets/images/class-avatars/class-${req.tenantId}-${Date.now()}.webp`
       const result =  await updateBuffer({fileUrl:req.body.oldAvatar,fileName,buffer:resizedBuffer})
   
       if(result){
@@ -98,7 +98,7 @@ export const deleteManyClasses = catchAsync(async function (req, res,next) {
 export const createClass = catchAsync(async function (req, res) {
     if(req.file && req.file.buffer){
         const resizedBuffer = await resizeImage({buffer:req.file.buffer,height:256,width:256})
-        const fileName = `assets/images/class-avatars/class-${req.user._id}-${Date.now()}.webp`
+        const fileName = `assets/images/class-avatars/class-${req.tenantId}-${Date.now()}.webp`
         const result =  await uploadBuffer({fileName,buffer:resizedBuffer})
         
          if(result){
