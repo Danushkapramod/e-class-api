@@ -56,6 +56,7 @@ const authSchema = new mongoose.Schema({
         address:String,
         city:String
     },
+    isVisible:{type:Boolean,default:true},
     permissions: [String],
     passwordChangedAt: Date,
     passwordResetToken: String,
@@ -64,7 +65,8 @@ const authSchema = new mongoose.Schema({
     emailResetExpires: Date,
     emailVerifyToken: String,
     emailVerifyExpires: Date,
-    refreshToken: String      
+    refreshToken: String,    
+    hiddenAt: { type: Date },  
 })
 
 authSchema.pre('save', async function (next) {
@@ -82,6 +84,15 @@ authSchema.pre('save',function (next) {
 authSchema.pre(['find', 'findOne','findById'], function (next) {
     this.where({ active: { $ne: false }})
     next()
+})
+
+authSchema.pre(['updateMany','findOneAndUpdate'], async function (next) {
+    const update = this.getUpdate();
+    if (Object.prototype.hasOwnProperty.call(update, 'isVisible')){
+       update.hiddenAt = Date.now()
+       this.setUpdate(update);
+    }
+    next(); 
 })
 
 authSchema.methods.applyPendingEmailChange = function () {

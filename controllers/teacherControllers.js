@@ -22,7 +22,8 @@ export const getTeacherClasses = catchAsync(async function (req, res, next) {
     const teacher= await Teacher.find({isVisible:true})
     if(!teacher) return next(new AppErrror('Teacher not found', 404));
     
-    const classes = await Class.find({ teacher: id, isVisible: true });
+    const classes = await Class.find({ teacher: id, isVisible: true })
+    .populate('teacher').exec();
     res.status(200).json( classes)
 })
 

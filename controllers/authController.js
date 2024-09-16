@@ -119,11 +119,6 @@ export const updateAdmin = catchAsync(async function (req, res, next) {
     res.status(201).json('success')
 })
 
-export const getAdmins = catchAsync(async function (req, res) {
-    const users = await Auth.find({ rootUserId: req.user._id });
-    res.status(201).json(users)
-})
-
 export const verifyEmail = catchAsync(async function (req, res,next) {
     const token = req.query.token;
     if(!token) {
@@ -228,7 +223,7 @@ export const logOut = catchAsync(async function (req, res) {
 
 
 export const protect = catchAsync(async function (req, res, next) {
-
+    console.log('===========-------');
     const token = req.cookies.access_token || 
     (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
@@ -428,15 +423,20 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     res.status(200).json('Email changed successfully.' );
 });
 
+export const getAdmins = catchAsync(async function (req, res) {
+    const users = await Auth.find({ rootUserId: req.user._id, iisVisible:true });
+    res.status(201).json(users)
+})
+
 export const hideAdmin = catchAsync(async function (req, res, next) {
-    const {data,id } = req.body
-    if(!data || !id) return next()
-    await Auth.findByIdAndUpdate(id, data)
+    const {data,idList} = req.body
+    if(!data || !idList) return next()
+    await Auth.updateMany({_id:{$in:idList}},data)
     res.status(200).json('success')
 })
 
 export const getHiddenAdmins = catchAsync(async function (req, res) {
-    const admins = await Auth.find({isVisible:false, rootUserId: req.user._id})
+    const admins = await Auth.find({isVisible: false, rootUserId: req.user._id})
     res.status(200).json(admins)
 })
 
@@ -447,5 +447,13 @@ export const deleteAdmin = catchAsync(async function (req, res,  next) {
     res.status(200).json('success')
 })
 
+export const deleteManyAdmins = catchAsync(async function (req, res,next) {
+    const {idList} = req.body
+    if (!idList) {
+        return next(new AppError('No Student found', 404))
+    }
+    await Auth.deleteMany({_id:{$in:idList}})
+    res.status(200).json('succes')
+})
 
 

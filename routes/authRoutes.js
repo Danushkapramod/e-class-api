@@ -4,6 +4,7 @@ import {
     changePassword,
     createAdmin,
     deleteAdmin,
+    deleteManyAdmins,
     emailChangePin,
     fetchAuthData,
     forgotPassword,
@@ -21,19 +22,23 @@ import {
     verifyEmail,
 } from '../controllers/authController.js'
 import { uploadBuffer } from '../configs/multer.js'
-import { getAppSetings, statusOptionsDefault, updateAppSetings } from '../controllers/appSetingsController.js'
+import { getAppSetings, statusOptionsDefault, updateAppSetings } 
+from '../controllers/appSetingsController.js'
 
 const router = express.Router()
 
 router.post('/signup', signup ) 
 router.post('/admin', protect, createAdmin ) 
-router.patch('/admin/:id', protect, updateAdmin ) 
 router.get('/verify-email',verifyEmail)
 router.get('/admins', protect, getAdmins)
 router.post('/login', login)
+
 router.get('/admins/hidden',protect,getHiddenAdmins)
 router.patch('/admins/hide',protect,hideAdmin)
 router.delete('/admins/:id',protect,deleteAdmin)
+router.patch('/admin/:id', protect, updateAdmin ) 
+router.route('/admins/deleteMany').post(protect, deleteManyAdmins)
+
 router.post('/reset-password',resetPassword)
 router.post('/forgot-password',forgotPassword)
 router.post('/change-password',protect,changePassword)

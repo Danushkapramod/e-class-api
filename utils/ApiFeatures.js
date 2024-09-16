@@ -38,7 +38,8 @@ export class ApiFeatures {
 
     searching() {
         if (this.req.query.search) {
-            const query = { [this.req.query.field || 'name']: { $regex: this.req.query.search, $options: "i" } };
+            const query = { [this.req.query.field || 'name']: 
+                { $regex: this.req.query.search, $options: "i" } };
             this.query = this.query.find(query)
         }
         return this
