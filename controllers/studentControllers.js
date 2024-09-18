@@ -106,9 +106,12 @@ export const getStudents = catchAsync(async function (req, res,next) {
         
     const Student = getModelByTenant(req.tenantId,'Student')
 
-    const query = {'class.classId': { $in: id }, isVisible: true,
-    ...(req.query?.status && { 'class.status': req.query.status })};
-    const apiFeatures = new ApiFeatures(req,Student.find(query)).searching().filtering().pagination()
+    const isFiltering = Boolean(req.query.status)
+
+    let query = !isFiltering ? {'class.classId': id }: 
+    {class: { $elemMatch: { classId: id, status: req.query.status } }}
+    query ={...query, isVisible: true}
+    const apiFeatures = new ApiFeatures(req,Student.find(query)).searching().pagination()
 
     const students = await apiFeatures.query
     res.status(200).json( students)
@@ -125,14 +128,14 @@ export const getOneStudent = catchAsync(async function (req, res,next) {
 })
 
 
-export const getAllStudents = catchAsync(async function (req, res,next) {
-
+export const getAllStudents = catchAsync(async function (req, res ) {
     const Student = getModelByTenant(req.tenantId,'Student')
-    const apiFeatures = new ApiFeatures(req,Student.find({isVisible:true})).filtering().searching().pagination()
+    const apiFeatures = new ApiFeatures(req,Student.find({isVisible:true})).searching().pagination()
 
     const students = await apiFeatures.query
     res.status(200).json( students)
 })
+
 export const updateStudent = catchAsync(async function (req, res, next) {
     const Student = getModelByTenant(req.tenantId,'Student')
     const studentById = await Student.findByIdAndUpdate(
@@ -167,7 +170,6 @@ export const deleteManyStudents = catchAsync(async function (req, res,next) {
 })
 
 
-
 export const updateSelectedStudents = catchAsync(async function (req, res,next) {
     const {studentIds,newData} = req.body
 
@@ -195,7 +197,6 @@ export const addClassForSelectedStudents= catchAsync(async function (req, res,ne
 export const studentsTotal = catchAsync(async function (req, res, next) {
     const {id} = req.params
     if(!id) return next( AppErrror('Class ID is required', 400))
-
     const Student = getModelByTenant(req.tenantId,'Student')
     const total  = await Student.countDocuments({'class.classId':id, isVisible:true}); 
       res.status(200).json(total)

@@ -29,7 +29,7 @@ router
     .route('/:id')
     .get(getTeacherById)
     .patch(protect,uploadBuffer, canUpdateTeacher, updateTeacher)
-    .delete(protect,uploadBuffer, canUpdateTeacher,deleteTeacher)
+    .delete(protect,uploadBuffer, canDeleteTeacher,deleteTeacher)
 
 
 

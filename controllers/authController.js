@@ -223,7 +223,6 @@ export const logOut = catchAsync(async function (req, res) {
 
 
 export const protect = catchAsync(async function (req, res, next) {
-    console.log('===========-------');
     const token = req.cookies.access_token || 
     (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
