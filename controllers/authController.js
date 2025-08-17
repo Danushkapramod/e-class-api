@@ -423,7 +423,7 @@ export const changeEmail = catchAsync(async function (req, res, next) {
 });
 
 export const getAdmins = catchAsync(async function (req, res) {
-    const users = await Auth.find({ rootUserId: req.user._id, iisVisible:true });
+    const users = await Auth.find({ rootUserId: req.tenantId, isVisible:true });
     res.status(201).json(users)
 })
 
