@@ -9,10 +9,10 @@ import { Email } from '../utils/Email.js'
 import { Token } from '../models/refreshTokens.js'
 import { S3BASE_URL } from '../configs/aws-config.js'
 import { resizeImage, s3deleteFile, updateBuffer } from '../utils/ImageHandle.js'
+import { BASE_URL } from '../configs/data.js'
 
 dotenv.config()
 
-const BASE_URL = 'http://localhost:5173';
 
 export function createToken(user,type) {
    let expiresIn;
