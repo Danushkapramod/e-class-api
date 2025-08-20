@@ -16,6 +16,7 @@ export const getAppSetings = catchAsync(async function (req, res) {
 })
 
 
+
 export const updateAppSetings = catchAsync(async function (req, res,next) {
     if(!req.body)return next()
     const AppSettings = getModelByTenant(req.tenantId,"AppSetings")
