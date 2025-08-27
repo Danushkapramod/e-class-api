@@ -169,11 +169,18 @@ export const verifyEmail = catchAsync(async function (req, res,next) {
 //     res.status(200).json({user:userResponse})  
 //     signInLogger.info({user:user.email, message:'Sign-in successful'})
 // })
-
+    const cokiesOptio = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+        httpOnly:true,
+        secure:true,
+        sameSite: 'None',
+        
+    }
 
 
 export const login = catchAsync(async function (req, res, next) {
     const { email, password, username, loginType } = req.body
+    console.log(req.body);
     let user;
     if(loginType === 'rootAdmin'){
        if (!email || !password) {
@@ -192,6 +199,8 @@ export const login = catchAsync(async function (req, res, next) {
           return next(new AppError('Incorrect Username or password', 401))
         }
     }
+    console.log(user);
+    
     const access_token =  createToken({id:user._id},'access')
     const refresh_token =  createToken({id:user._id},'refresh')
 
@@ -200,12 +209,6 @@ export const login = catchAsync(async function (req, res, next) {
     const userResponse = { ...user._doc }; 
     delete userResponse.password; 
 
-    const cokiesOptio = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-        httpOnly:true,
-        secure:true,
-        sameSite: 'None',
-    }
     res.cookie('access_token', access_token, cokiesOptio);
     res.cookie('refresh_token', refresh_token, cokiesOptio);
 
@@ -246,13 +249,7 @@ export const protect = catchAsync(async function (req, res, next) {
         }
         const access_token = createToken({id: decode.id},'access')
         
-        const cookieOptions = {
-            expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-        }
-        res.cookie('access_token', access_token, cookieOptions)
+        res.cookie('access_token', access_token, cokiesOptio)
            .status(200).json()
            return 
     }
@@ -296,12 +293,6 @@ export const changePassword = catchAsync(async function (req, res, next) {
     const access_token =  createToken({id:user._id},'access')
     const refresh_token =  createToken({id:user._id},'refresh')
 
-    const cokiesOptio = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-        httpOnly:true,
-        secure:true,
-        sameSite: 'None',
-    }
     res.cookie('access_token', access_token, cokiesOptio);
     res.cookie('refresh_token', refresh_token, cokiesOptio);
     res.status(200).json({ message: 'Password changed successfully.' });
@@ -410,12 +401,6 @@ export const changeEmail = catchAsync(async function (req, res, next) {
     const access_token =  createToken({id:user._id},'access')
     const refresh_token =  createToken({id:user._id},'refresh')
 
-    const cokiesOptio = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-        httpOnly:true,
-        secure:true,
-        sameSite: 'None',
-    }
     res.cookie('access_token', access_token, cokiesOptio);
     res.cookie('refresh_token', refresh_token, cokiesOptio);
 
