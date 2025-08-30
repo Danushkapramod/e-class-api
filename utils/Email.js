@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import { sendMail } from '../configs/email.js'
 
 
@@ -126,8 +127,7 @@ export class Email{
             <p class="greeting">Hi ${this.name}</p>
             <p>Your EduSuit QR-ID</p>
             </div>
-             <img src="cid:imgAttachment" />
-            
+             <img src="cid:imgAttachment" alt="inline image"/>
             <p class="closing">Regards,</p>
             <p>The EduSuit Team</p>
         </div>
@@ -144,18 +144,18 @@ export class Email{
         subject: 'EduSuit Student QR',
         text: message,
         html,
-        attachments: [ 
-            {
-              filename: path.basename(this.file),
-              path: this.file,
-              cid: 'imgAttachment',
-            },
-            {
-              filename: path.basename(this.file),
-              path: this.file,
-            },
-
-        ]
+      attachments: [
+        {
+          name: path.basename(this.file),
+          content: fs.readFileSync(this.file).toString("base64"),
+          contentId: "imgAttachment",
+        },
+        {
+          name: path.basename(this.file),
+          content: fs.readFileSync(this.file).toString("base64"),
+          
+        },
+      ],
       };
       sendMail(mailOptions)
     }
@@ -292,7 +292,7 @@ export class Email{
         </html>`
        
         const mailOptions = {
-            from: 'no-reply@yourdomain.com',
+            from: 'edusuit@edusuit.online',
             to: this.email,
             subject: 'Password Reset',
             text: message,

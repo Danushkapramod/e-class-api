@@ -32,6 +32,7 @@ const corsOptions = {
 
 const app = express()
 
+
 app.use(morgan('short', { stream: combinedLogger.stream }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
