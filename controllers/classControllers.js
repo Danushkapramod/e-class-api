@@ -199,12 +199,14 @@ export const confirmAttendance = catchAsync(async function (req, res, next) {
 
 
 
+
 export const confirmPayment = catchAsync(async function (req, res, next) {
     const { classId, studentId } = req.query;
 
     if (!classId || !studentId) {
         return next(new AppError('Missing classId or studentId', 400));
     }
+    
     const Student = getModelByTenant(req.tenantId, 'Student');
     const Class = getModelByTenant(req.tenantId, 'Class'); 
 
@@ -212,26 +214,72 @@ export const confirmPayment = catchAsync(async function (req, res, next) {
     if (!student) {
         return next(new AppError('Invalid QR or student ID', 400));
     }
+    
     const _class = await Class.findOne({ _id: classId});
     if (!_class) {
         return next(new AppError('No matching class found', 400));
     }
-    const studentClass = student.class.find((classItem)=>classItem.classId)       
+    
+    const studentClass = student.class.find(classItem => classItem.classId === classId);
     if (!studentClass) {
         return next(new AppError('No matching class found for this student', 400));
     }
+    
+
+    if (studentClass.status === 'paid') {
+        return next(new AppError('Payment already marked for this month', 400));
+    }
+    
     const isToday = _class.day === getCurrentDay();
-    if(!isToday) return next(new AppError('Class day does not match today\'s date', 400));
+    if (!isToday) {
+        return next(new AppError('Class day does not match today\'s date', 400));
+    }
 
-    student.class = student.class.map((classData)=>{
-        if(classData.classId === classId){
-            if(classData.status === 'paid'){
-                return next(new AppError('Payment already marked for this montht', 400));
-            }
-         return {classId, status:'paid'}
-        }return classData  
-    })
-    await student.save()
 
+    student.class = student.class.map(classData => {
+        if (classData.classId === classId) {
+            return { ...classData, status: 'paid' };
+        }
+        return classData;
+    });
+    
+    await student.save();
     res.status(201).json(true);
 });
+
+// export const confirmPayment = catchAsync(async function (req, res, next) {
+//     const { classId, studentId } = req.query;
+
+//     if (!classId || !studentId) {
+//         return next(new AppError('Missing classId or studentId', 400));
+//     }
+//     const Student = getModelByTenant(req.tenantId, 'Student');
+//     const Class = getModelByTenant(req.tenantId, 'Class'); 
+
+//     const student = await Student.findById(studentId);
+//     if (!student) {
+//         return next(new AppError('Invalid QR or student ID', 400));
+//     }
+//     const _class = await Class.findOne({ _id: classId});
+//     if (!_class) {
+//         return next(new AppError('No matching class found', 400));
+//     }
+//     const studentClass = student.class.find((classItem)=>classItem.classId)       
+//     if (!studentClass) {
+//         return next(new AppError('No matching class found for this student', 400));
+//     }
+//     const isToday = _class.day === getCurrentDay();
+//     if(!isToday) return next(new AppError('Class day does not match today\'s date', 400));
+
+//     student.class = student.class.map((classData)=>{
+//         if(classData.classId === classId){
+//             if(classData.status === 'paid'){
+//                 return next(new AppError('Payment already marked for this montht', 400));
+//             }
+//          return {classId, status:'paid'}
+//         }return classData  
+//     })
+//     await student.save()
+
+//     res.status(201).json(true);
+// });

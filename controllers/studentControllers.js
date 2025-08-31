@@ -1,4 +1,5 @@
 import fs from 'fs'
+import  pkg  from 'whatsapp-web.js';
 import AppErrror from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import { qrGenarateSave, qrGenarateUpload } from "../utils/ImageHandle.js";
@@ -6,26 +7,32 @@ import { ApiFeatures } from '../utils/ApiFeatures.js';
 import { Email } from '../utils/Email.js';
 import { getModelByTenant } from '../configs/database.js';
 import { S3BASE_URL } from '../configs/aws-config.js';
+import { client } from '../configs/whatsapp-web-config.js';
 
-
-
+const { MessageMedia } = pkg;
 async function sendQrWhatsapp({to,url}) {
-    const res = await fetch('https://graph.facebook.com/v19.0/376649382200287/messages', {
-    method: "POST",
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer EAAQMCLEWz1kBO5ya1G7MMLfeu7ikWh73BZASyqPbtiYZAJWBclIahZCWWX4ZAsGBivgndaFJW7GqNBjgQzpe6gVd1oAH5ZAPH7PaU2G0hP0DMDvm2bx27Y9eMdcrn77sHBrYMZCanR5K9lHIwcROaecU1wL8ScxhZBgzOJQbtqlIEAvN2BChWhrfef5GlTWlmGAZAhEAlZB7qiBZA8ZA8yCWD8ZD',
-    },
-    body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: `94${to}`,
-        type: "image",
-        image: {
-        link: url
-        }
-    })
-});    
+//     const res = await fetch('https://graph.facebook.com/v19.0/376649382200287/messages', {
+//     method: "POST",
+//     headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': 'Bearer EAAQMCLEWz1kBO5ya1G7MMLfeu7ikWh73BZASyqPbtiYZAJWBclIahZCWWX4ZAsGBivgndaFJW7GqNBjgQzpe6gVd1oAH5ZAPH7PaU2G0hP0DMDvm2bx27Y9eMdcrn77sHBrYMZCanR5K9lHIwcROaecU1wL8ScxhZBgzOJQbtqlIEAvN2BChWhrfef5GlTWlmGAZAhEAlZB7qiBZA8ZA8yCWD8ZD',
+//     },
+//     body: JSON.stringify({
+//         messaging_product: "whatsapp",
+//         to: `94${to}`,
+//         type: "image",
+//         image: {
+//         link: url
+//         }
+//     })
+// });  
+const number = to[0] === '0' ? to.slice(1) : to;
+console.log(number);
+const media = await MessageMedia.fromUrl(url, { unsafeMime: true } );
+client.sendMessage(`94${number}@c.us`, media, { caption: "Your Edusuit QR" });
 }
+
+
 
 async function sendQrGmail({email,name,file}) {
     new Email({email:email.trim(),name,file}).studentQR()

@@ -4,3 +4,5 @@ logs
 config.env
 bfg.jar
 bfg
+.wwebjs_cache
+.wwebjs_auth

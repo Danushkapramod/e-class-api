@@ -25,7 +25,7 @@ const limiter = {
 const corsOptions = {
     origin:['http://localhost:5173', 'https://edusuit.netlify.app'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Access-Control-Allow-Origin' ],
     credentials: true,
     optionsSuccessStatus: 204,
 };
